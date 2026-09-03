@@ -1,0 +1,4 @@
+interface:
+  display_name: "Nam Book Research"
+  short_description: "Build a claim-level verified evidence ledger"
+  default_prompt: "Use $nam-book-research to research and verify the material claims for this book."

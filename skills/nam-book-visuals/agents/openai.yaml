@@ -1,0 +1,4 @@
+interface:
+  display_name: "Nam Book Visuals"
+  short_description: "Plan objective-linked book visual systems"
+  default_prompt: "Use $nam-book-visuals to design an objective-linked visual plan and Nam character bible for this book."

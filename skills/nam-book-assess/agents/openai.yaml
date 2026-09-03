@@ -1,0 +1,6 @@
+interface:
+  display_name: "Nam Book Assess"
+  short_description: "Build rigorous original book assessments"
+  default_prompt: "Use $nam-book-assess to create a blueprint-aligned assessment with validated rationales."
+policy:
+  allow_implicit_invocation: true

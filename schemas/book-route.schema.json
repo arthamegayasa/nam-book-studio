@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/arthamegayasa/nam-book-studio/main/skills/asknam/references/schemas/book-route.schema.json",
+  "title": "Nam Book route",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["route_version", "generated_at", "intent", "nodes", "edges"],
+  "properties": {
+    "route_version": { "const": "1.0.0" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "intent": {
+      "enum": ["start", "resume", "revise", "audit", "illustrate", "localize", "publish"]
+    },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "skill",
+          "operation",
+          "purpose",
+          "depends_on",
+          "required_approvals",
+          "produces",
+          "status",
+          "blockers"
+        ],
+        "properties": {
+          "id": { "type": "string" },
+          "skill": { "type": "string" },
+          "operation": { "type": "string", "minLength": 1 },
+          "purpose": { "type": "string" },
+          "depends_on": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": { "type": "string" }
+          },
+          "required_approvals": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": { "type": "string" }
+          },
+          "produces": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "status": {
+            "enum": ["pending", "ready", "running", "blocked", "complete", "skipped", "failed", "stale"]
+          },
+          "blockers": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["from", "to"],
+        "properties": {
+          "from": { "type": "string" },
+          "to": { "type": "string" }
+        }
+      }
+    }
+  }
+}

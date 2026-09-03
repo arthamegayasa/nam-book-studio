@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/arthamegayasa/nam-book-studio/main/skills/asknam/references/schemas/evidence-ledger.schema.json",
+  "title": "Nam Book claim-level evidence ledger",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "project_id",
+    "locale",
+    "research_cutoff",
+    "sources",
+    "claims",
+    "limitations",
+    "unresolved_gaps"
+  ],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schema_version": { "const": "1.0.0" },
+    "project_id": { "type": "string" },
+    "locale": { "enum": ["en-US", "id-ID"] },
+    "jurisdiction": { "type": ["string", "null"] },
+    "research_cutoff": { "type": "string", "format": "date" },
+    "retraction_check_date": { "type": ["string", "null"], "format": "date" },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "source_id",
+          "source_type",
+          "title",
+          "publication_or_update_date",
+          "accessed_at",
+          "retrieval_status",
+          "metadata_status",
+          "correction_status"
+        ],
+        "properties": {
+          "source_id": { "type": "string" },
+          "source_type": {
+            "enum": ["guideline", "systematic-review", "primary-study", "reference-work", "official-data", "standard", "other"]
+          },
+          "title": { "type": "string" },
+          "authors_or_issuer": { "type": "string" },
+          "doi": { "type": ["string", "null"] },
+          "pmid": { "type": ["string", "null"] },
+          "url": { "type": ["string", "null"] },
+          "publication_or_update_date": { "type": ["string", "null"], "format": "date" },
+          "accessed_at": { "type": "string", "format": "date-time" },
+          "retrieval_status": { "enum": ["not-attempted", "success", "failed"] },
+          "metadata_status": { "enum": ["unverified", "verified", "conflicting"] },
+          "correction_status": { "enum": ["not-checked", "clear", "corrected", "retracted", "expression-of-concern", "unknown"] }
+        }
+      }
+    },
+    "claims": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "claim_id",
+          "chapter_id",
+          "section_id",
+          "claim_text",
+          "classification",
+          "risk_level",
+          "evidence_status",
+          "evidence"
+        ],
+        "properties": {
+          "claim_id": { "type": "string" },
+          "chapter_id": { "type": "string" },
+          "section_id": { "type": "string" },
+          "claim_text": { "type": "string", "minLength": 1 },
+          "classification": { "enum": ["fact", "assumption", "interpretation"] },
+          "risk_level": { "enum": ["R0", "R1", "R2", "R3"] },
+          "evidence_status": { "enum": ["candidate", "verified", "conflicting", "missing"] },
+          "intended_citation": { "type": ["string", "null"] },
+          "verified_by": { "type": ["string", "null"] },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["source_id", "passage_status", "claim_support"],
+              "properties": {
+                "source_id": { "type": "string" },
+                "passage_status": { "enum": ["not-checked", "found", "not-found", "inaccessible"] },
+                "supporting_passage": { "type": ["string", "null"] },
+                "location": { "type": ["string", "null"] },
+                "claim_support": { "enum": ["unknown", "supports", "partially-supports", "contradicts", "not-applicable"] },
+                "notes": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "limitations": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "unresolved_gaps": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}

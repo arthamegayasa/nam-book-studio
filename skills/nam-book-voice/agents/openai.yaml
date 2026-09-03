@@ -1,0 +1,6 @@
+interface:
+  display_name: "Nam Book Voice"
+  short_description: "Calibrate an authentic author voice"
+  default_prompt: "Use $nam-book-voice to build an evidence-preserving author voice profile or audit voice drift."
+policy:
+  allow_implicit_invocation: true

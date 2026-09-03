@@ -1,0 +1,6 @@
+interface:
+  display_name: "Nam Book Localize"
+  short_description: "Align English and Indonesian editions"
+  default_prompt: "Use $nam-book-localize to create a semantically aligned English or Indonesian edition."
+policy:
+  allow_implicit_invocation: true

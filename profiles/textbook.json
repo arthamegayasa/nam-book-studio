@@ -1,0 +1,48 @@
+{
+  "$schema": "../schemas/book-profile.schema.json",
+  "schema_version": "1.0.0",
+  "profile_id": "textbook",
+  "label": "Textbook",
+  "description": "A structured, referenceable teaching text with explicit objectives, evidence, examples, figures, and self-assessment.",
+  "defaults": {
+    "assessments": true,
+    "illustrations": true,
+    "diagrams": true,
+    "visual_density": "medium",
+    "chapter_word_target": 5000,
+    "question_count_per_chapter": 8
+  },
+  "locked_features": {
+    "assessments": false,
+    "illustrations": false,
+    "diagrams": false
+  },
+  "start_skills": [
+    "nam-book-research",
+    "nam-book-architect",
+    "nam-book-voice",
+    "nam-book-write",
+    "nam-book-teach",
+    "nam-book-assess",
+    "nam-book-visuals",
+    "nam-book-diagram",
+    "nam-book-illustrate",
+    "nam-book-edit",
+    "nam-book-validate",
+    "nam-book-publish"
+  ],
+  "pedagogy": {
+    "reader_contract": "Build a durable mental model and a reliable reference path from foundations to application.",
+    "chapter_pattern": [
+      "learning objectives",
+      "introduction",
+      "core concepts",
+      "mechanism or reasoning",
+      "worked application",
+      "figures and tables",
+      "summary",
+      "references",
+      "self-assessment"
+    ]
+  }
+}

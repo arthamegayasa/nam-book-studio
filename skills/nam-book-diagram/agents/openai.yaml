@@ -1,0 +1,4 @@
+interface:
+  display_name: "Nam Book Diagram"
+  short_description: "Build exact, editable educational SVG diagrams"
+  default_prompt: "Use $nam-book-diagram to turn this approved learning objective and evidence into an editable SVG diagram."

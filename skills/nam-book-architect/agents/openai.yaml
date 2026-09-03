@@ -1,0 +1,4 @@
+interface:
+  display_name: "Nam Book Architect"
+  short_description: "Design an evidence-aware chapter architecture"
+  default_prompt: "Use $nam-book-architect to design the reader promise, chapter graph, and learning architecture for this book."

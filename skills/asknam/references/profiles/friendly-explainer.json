@@ -1,0 +1,48 @@
+{
+  "$schema": "../schemas/book-profile.schema.json",
+  "schema_version": "1.0.0",
+  "profile_id": "friendly-explainer",
+  "label": "Friendly explainer",
+  "description": "An approachable, highly visual explanation for curious non-specialists without imitating another publisher's trade dress.",
+  "defaults": {
+    "assessments": true,
+    "illustrations": true,
+    "diagrams": true,
+    "visual_density": "high",
+    "chapter_word_target": 3000,
+    "question_count_per_chapter": 5
+  },
+  "locked_features": {
+    "assessments": false,
+    "illustrations": false,
+    "diagrams": false
+  },
+  "start_skills": [
+    "nam-book-research",
+    "nam-book-architect",
+    "nam-book-voice",
+    "nam-book-write",
+    "nam-book-teach",
+    "nam-book-assess",
+    "nam-book-visuals",
+    "nam-book-diagram",
+    "nam-book-illustrate",
+    "nam-book-edit",
+    "nam-book-validate",
+    "nam-book-publish"
+  ],
+  "pedagogy": {
+    "reader_contract": "Make a difficult subject feel navigable while preserving important nuance.",
+    "chapter_pattern": [
+      "reader question",
+      "big idea",
+      "plain-language explanation",
+      "analogy with limits",
+      "worked example",
+      "tip, warning, or remember block",
+      "visual explanation",
+      "quick check",
+      "recap"
+    ]
+  }
+}

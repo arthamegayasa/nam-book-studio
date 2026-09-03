@@ -1,0 +1,6 @@
+interface:
+  display_name: "Nam Book Teach"
+  short_description: "Add purposeful instructional scaffolding"
+  default_prompt: "Use $nam-book-teach to strengthen this approved draft for its intended learners."
+policy:
+  allow_implicit_invocation: true

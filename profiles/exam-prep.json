@@ -1,0 +1,47 @@
+{
+  "$schema": "../schemas/book-profile.schema.json",
+  "schema_version": "1.0.0",
+  "profile_id": "exam-prep",
+  "label": "Exam preparation",
+  "description": "A blueprint-aligned review book centered on retrieval practice, discriminating questions, rationales, and evidence-linked exam traps.",
+  "defaults": {
+    "assessments": true,
+    "illustrations": false,
+    "diagrams": true,
+    "visual_density": "medium",
+    "chapter_word_target": 3500,
+    "question_count_per_chapter": 20
+  },
+  "locked_features": {
+    "assessments": true,
+    "illustrations": false,
+    "diagrams": false
+  },
+  "start_skills": [
+    "nam-book-research",
+    "nam-book-architect",
+    "nam-book-voice",
+    "nam-book-write",
+    "nam-book-teach",
+    "nam-book-assess",
+    "nam-book-visuals",
+    "nam-book-diagram",
+    "nam-book-edit",
+    "nam-book-validate",
+    "nam-book-publish"
+  ],
+  "pedagogy": {
+    "reader_contract": "Help the learner retrieve, discriminate, and apply the highest-value knowledge under exam conditions.",
+    "chapter_pattern": [
+      "exam blueprint and objectives",
+      "must-know concepts",
+      "high-yield facts",
+      "worked discrimination",
+      "memory aid with limits",
+      "exam trap",
+      "practice set",
+      "answers and evidence-linked rationales",
+      "rapid review"
+    ]
+  }
+}

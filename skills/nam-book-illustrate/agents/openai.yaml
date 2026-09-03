@@ -1,0 +1,7 @@
+interface:
+  display_name: "Nam Book Illustrate"
+  short_description: "Create original Nam educational illustrations"
+  icon_small: "./assets/nam-v1/nam-icon.png"
+  icon_large: "./assets/nam-v1/nam-character-sheet.png"
+  brand_color: "#D8872F"
+  default_prompt: "Use $nam-book-illustrate to create a print-ready Nam illustration from this approved visual brief."

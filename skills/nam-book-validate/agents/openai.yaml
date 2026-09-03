@@ -1,0 +1,4 @@
+interface:
+  display_name: "Nam Book Validate"
+  short_description: "Audit book evidence, rights, and release readiness"
+  default_prompt: "Use $nam-book-validate to audit this book candidate and issue a reproducible pass, conditional, or fail decision."

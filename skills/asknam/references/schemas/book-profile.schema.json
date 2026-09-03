@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/arthamegayasa/nam-book-studio/main/skills/asknam/references/schemas/book-profile.schema.json",
+  "title": "Nam Book profile",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "profile_id",
+    "label",
+    "description",
+    "defaults",
+    "locked_features",
+    "start_skills",
+    "pedagogy"
+  ],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schema_version": { "const": "1.0.0" },
+    "profile_id": {
+      "enum": ["friendly-explainer", "textbook", "exam-prep"]
+    },
+    "label": { "type": "string", "minLength": 1 },
+    "description": { "type": "string", "minLength": 1 },
+    "defaults": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "assessments",
+        "illustrations",
+        "diagrams",
+        "visual_density",
+        "chapter_word_target",
+        "question_count_per_chapter"
+      ],
+      "properties": {
+        "assessments": { "type": "boolean" },
+        "illustrations": { "type": "boolean" },
+        "diagrams": { "type": "boolean" },
+        "visual_density": {
+          "enum": ["low", "medium", "high"]
+        },
+        "chapter_word_target": { "type": "integer", "minimum": 500 },
+        "question_count_per_chapter": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "locked_features": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["assessments", "illustrations", "diagrams"],
+      "properties": {
+        "assessments": { "type": "boolean" },
+        "illustrations": { "type": "boolean" },
+        "diagrams": { "type": "boolean" }
+      }
+    },
+    "start_skills": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" }
+    },
+    "pedagogy": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["reader_contract", "chapter_pattern"],
+      "properties": {
+        "reader_contract": { "type": "string", "minLength": 1 },
+        "chapter_pattern": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  }
+}

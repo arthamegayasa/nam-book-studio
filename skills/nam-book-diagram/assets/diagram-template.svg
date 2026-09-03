@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 1200 675"
+     role="img"
+     aria-labelledby="diagram-title diagram-description">
+  <title id="diagram-title">Three-stage teaching process template</title>
+  <desc id="diagram-description">A left-to-right example showing an input connected to a process and then to an outcome. Replace every example label and accessibility description for the actual figure.</desc>
+  <style>
+    .canvas { fill: #ffffff; }
+    .node { stroke: #27303f; stroke-width: 3; }
+    .input { fill: #dbeafe; }
+    .process { fill: #fef3c7; }
+    .outcome { fill: #dcfce7; }
+    .edge { fill: none; stroke: #4b5563; stroke-width: 4; marker-end: url(#arrowhead); }
+    .label { fill: #111827; font: 600 28px Arial, sans-serif; text-anchor: middle; }
+  </style>
+  <defs>
+    <marker id="arrowhead" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path id="arrowhead-path" d="M 0 0 L 10 5 L 0 10 z" fill="#4b5563"/>
+    </marker>
+  </defs>
+  <rect id="background" class="canvas" x="0" y="0" width="1200" height="675"/>
+  <g id="connectors">
+    <path id="edge-input-process" class="edge" d="M 350 338 H 500"/>
+    <path id="edge-process-outcome" class="edge" d="M 700 338 H 850"/>
+  </g>
+  <g id="nodes">
+    <g id="node-input">
+      <rect class="node input" x="100" y="258" width="250" height="160" rx="24"/>
+      <text id="label-input" class="label" x="225" y="348">Input</text>
+    </g>
+    <g id="node-process">
+      <rect class="node process" x="500" y="258" width="200" height="160" rx="24"/>
+      <text id="label-process" class="label" x="600" y="348">Process</text>
+    </g>
+    <g id="node-outcome">
+      <rect class="node outcome" x="850" y="258" width="250" height="160" rx="24"/>
+      <text id="label-outcome" class="label" x="975" y="348">Outcome</text>
+    </g>
+  </g>
+</svg>

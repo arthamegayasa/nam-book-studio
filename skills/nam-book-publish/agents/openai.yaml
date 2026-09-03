@@ -1,0 +1,4 @@
+interface:
+  display_name: "Nam Book Publish"
+  short_description: "Build verified DOCX, EPUB, and PDF editions"
+  default_prompt: "Use $nam-book-publish to build and inspect a proof bundle in the requested book formats."

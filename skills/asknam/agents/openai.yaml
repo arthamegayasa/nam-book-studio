@@ -1,0 +1,9 @@
+interface:
+  display_name: "AskNam"
+  short_description: "Route and run the right book workflow"
+  icon_small: "./assets/nam-icon.png"
+  icon_large: "./assets/nam-icon.png"
+  brand_color: "#C97832"
+  default_prompt: "Use $asknam to choose and run the smallest sufficient workflow for my book project."
+policy:
+  allow_implicit_invocation: false

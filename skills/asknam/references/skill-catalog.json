@@ -1,0 +1,203 @@
+{
+  "$schema": "schemas/capability-catalog.schema.json",
+  "schema_version": "1.0.0",
+  "skills": [
+    { "id": "asknam" },
+    { "id": "nam-book-architect" },
+    { "id": "nam-book-assess" },
+    { "id": "nam-book-diagram" },
+    { "id": "nam-book-edit" },
+    { "id": "nam-book-illustrate" },
+    { "id": "nam-book-localize" },
+    { "id": "nam-book-publish" },
+    { "id": "nam-book-research" },
+    { "id": "nam-book-teach" },
+    { "id": "nam-book-validate" },
+    { "id": "nam-book-visuals" },
+    { "id": "nam-book-voice" },
+    { "id": "nam-book-write" }
+  ],
+  "capabilities": [
+    {
+      "skill": "asknam",
+      "capability": "orchestration",
+      "purpose": "Select, execute, and persist the smallest sufficient book-production route.",
+      "invocation": "explicit",
+      "depends_on": [],
+      "approval_gates": [],
+      "produces": []
+    },
+    {
+      "skill": "nam-book-research",
+      "capability": "research",
+      "purpose": "Build and refresh the claim-level evidence base.",
+      "invocation": "model",
+      "depends_on": [],
+      "approval_gates": ["project-brief"],
+      "produces": [
+        { "kind": "research_brief", "path": "research/research-brief.json", "cardinality": "one" },
+        { "kind": "evidence_ledger", "path": "research/evidence-ledger.json", "cardinality": "one" },
+        { "kind": "research_change_report", "path": "research/change-reports/{artifact_id}.json", "cardinality": "many", "required": false }
+      ]
+    },
+    {
+      "skill": "nam-book-architect",
+      "capability": "architecture",
+      "purpose": "Turn the reader promise and evidence into a stable book and chapter graph.",
+      "invocation": "model",
+      "depends_on": ["nam-book-research"],
+      "approval_gates": ["project-brief"],
+      "produces": [
+        { "kind": "book_architecture", "path": "architecture/book-architecture.json", "cardinality": "one" },
+        { "kind": "architecture_change_report", "path": "architecture/change-reports/{artifact_id}.json", "cardinality": "many", "required": false }
+      ]
+    },
+    {
+      "skill": "nam-book-voice",
+      "capability": "voice",
+      "purpose": "Define the original author voice and locale-aware style contract.",
+      "invocation": "model",
+      "depends_on": ["nam-book-architect"],
+      "approval_gates": ["architecture"],
+      "produces": [
+        { "kind": "voice_profile", "path": "voice-profile.yaml", "cardinality": "one" }
+      ]
+    },
+    {
+      "skill": "nam-book-write",
+      "capability": "drafting",
+      "purpose": "Draft chapters against approved objectives, evidence, and voice.",
+      "invocation": "model",
+      "depends_on": ["nam-book-research", "nam-book-architect", "nam-book-voice"],
+      "approval_gates": ["architecture"],
+      "produces": [
+        { "kind": "chapter_draft", "path": "chapters/{chapter_id}/draft.{locale}.md", "cardinality": "many" }
+      ]
+    },
+    {
+      "skill": "nam-book-teach",
+      "capability": "pedagogy",
+      "purpose": "Add profile-specific teaching blocks without changing factual meaning.",
+      "invocation": "model",
+      "depends_on": ["nam-book-write"],
+      "approval_gates": ["architecture"],
+      "produces": [
+        { "kind": "teaching_plan", "path": "teaching-plan.yaml", "cardinality": "one" },
+        { "kind": "enriched_draft", "path": "chapters/{chapter_id}/enriched.{locale}.md", "cardinality": "many" }
+      ]
+    },
+    {
+      "skill": "nam-book-assess",
+      "capability": "assessment",
+      "purpose": "Create objective-aligned practice with evidence-linked rationales.",
+      "invocation": "model",
+      "depends_on": ["nam-book-research", "nam-book-architect"],
+      "approval_gates": ["architecture"],
+      "produces": [
+        { "kind": "assessment_blueprint", "path": "assessment-blueprint.yaml", "cardinality": "one" },
+        { "kind": "assessment_items", "path": "items.{locale}.yaml", "cardinality": "many" }
+      ]
+    },
+    {
+      "skill": "nam-book-visuals",
+      "capability": "visual-direction",
+      "purpose": "Define the original visual system and character bible.",
+      "invocation": "model",
+      "depends_on": ["nam-book-architect", "nam-book-voice"],
+      "approval_gates": ["architecture"],
+      "produces": [
+        { "kind": "visual_brief", "path": "visuals/visual-brief.json", "cardinality": "one" },
+        { "kind": "character_bible", "path": "visuals/character-bible.json", "cardinality": "one" }
+      ]
+    },
+    {
+      "skill": "nam-book-diagram",
+      "capability": "diagrams",
+      "purpose": "Produce instructional diagrams tied to claims and learning jobs.",
+      "invocation": "model",
+      "depends_on": ["nam-book-research", "nam-book-architect", "nam-book-teach", "nam-book-visuals"],
+      "approval_gates": ["architecture"],
+      "produces": [
+        { "kind": "diagram_spec", "path": "visuals/diagrams/specs/{artifact_id}.json", "cardinality": "many" },
+        { "kind": "diagram_asset", "path": "visuals/diagrams/assets/{artifact_id}.svg", "cardinality": "many" }
+      ]
+    },
+    {
+      "skill": "nam-book-illustrate",
+      "capability": "illustration",
+      "purpose": "Create original educational illustrations from approved visual briefs.",
+      "invocation": "model",
+      "depends_on": ["nam-book-teach", "nam-book-visuals"],
+      "approval_gates": ["character-bible"],
+      "produces": [
+        { "kind": "illustration_brief", "path": "visuals/illustrations/briefs/{artifact_id}.json", "cardinality": "many" },
+        { "kind": "illustration_asset", "path": "visuals/illustrations/assets/{artifact_id}.png", "cardinality": "many" }
+      ]
+    },
+    {
+      "skill": "nam-book-edit",
+      "capability": "editing",
+      "purpose": "Integrate approved text, teaching, assessment, and visual references.",
+      "invocation": "model",
+      "depends_on": ["nam-book-teach", "nam-book-assess", "nam-book-diagram", "nam-book-illustrate"],
+      "approval_gates": ["architecture"],
+      "produces": [
+        { "kind": "edited_manuscript", "path": "edited.{locale}.md", "cardinality": "one" },
+        { "kind": "edit_report", "path": "edit-report.yaml", "cardinality": "one" }
+      ]
+    },
+    {
+      "skill": "nam-book-localize",
+      "capability": "localization",
+      "purpose": "Create a semantically aligned edition in the target locale.",
+      "invocation": "model",
+      "depends_on": ["nam-book-edit"],
+      "approval_gates": ["source-content-lock"],
+      "produces": [
+        { "kind": "localized_manuscript", "path": "localized/{locale}.md", "cardinality": "many" },
+        { "kind": "localization_report", "path": "localization-report.yaml", "cardinality": "one" }
+      ]
+    },
+    {
+      "skill": "nam-book-validate",
+      "capability": "validation",
+      "purpose": "Audit evidence, pedagogy, assessments, visuals, rights, and production readiness.",
+      "invocation": "model",
+      "depends_on": ["nam-book-edit", "nam-book-localize", "nam-book-assess", "nam-book-diagram", "nam-book-illustrate"],
+      "approval_gates": [],
+      "produces": [
+        { "kind": "validation_report", "path": "validation/validation-report.json", "cardinality": "one" }
+      ]
+    },
+    {
+      "skill": "nam-book-publish",
+      "capability": "publication",
+      "purpose": "Build review proofs, then promote an approved proof into a release bundle.",
+      "invocation": "model",
+      "depends_on": [],
+      "approval_gates": [],
+      "route_nodes": [
+        {
+          "id": "nam-book-publish-proof",
+          "operation": "proof",
+          "purpose": "Build versioned, reviewable deliverables before final validation.",
+          "depends_on": ["nam-book-edit", "nam-book-localize"],
+          "approval_gates": [],
+          "produces": ["publication_bundle", "publish_report"]
+        },
+        {
+          "id": "nam-book-publish-release",
+          "operation": "release",
+          "purpose": "Promote the exact approved proof into a versioned release bundle.",
+          "depends_on": ["nam-book-validate"],
+          "approval_gates": ["final-proof"],
+          "produces": ["publication_bundle", "publish_report"]
+        }
+      ],
+      "produces": [
+        { "kind": "publication_bundle", "path": "publication/{artifact_id}", "cardinality": "many" },
+        { "kind": "publish_report", "path": "publication/reports/{artifact_id}.json", "cardinality": "many" }
+      ]
+    }
+  ]
+}
