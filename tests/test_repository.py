@@ -51,6 +51,12 @@ class RepositoryTests(unittest.TestCase):
         for path in icon_paths:
             self.assertEqual(expected_icon_hash, hashlib.sha256(path.read_bytes()).hexdigest())
 
+        sheet_path = ROOT / "skills" / "nam-book-illustrate" / "assets" / "nam-v1" / "nam-character-sheet.png"
+        self.assertEqual(
+            "0b84633e4bbbb0ec88dfcac197f0cfc59ec9976c4496c459b8dbdc3f5be5944c",
+            hashlib.sha256(sheet_path.read_bytes()).hexdigest(),
+        )
+
         character_bible = (
             ROOT
             / "skills"
@@ -81,6 +87,56 @@ class RepositoryTests(unittest.TestCase):
             "nam-book-validate",
             nodes["nam-book-publish-release"]["depends_on"],
         )
+
+    def test_art_setup_owns_identity_and_precedes_visual_planning(self) -> None:
+        catalog = json.loads(
+            (ROOT / "skills" / "asknam" / "references" / "skill-catalog.json")
+            .read_text(encoding="utf-8")
+        )
+        capabilities = {item["skill"]: item for item in catalog["capabilities"]}
+        setup = capabilities["nam-book-illustration-setup"]
+        visuals = capabilities["nam-book-visuals"]
+        self.assertEqual([], setup["depends_on"])
+        self.assertEqual(["project-brief"], setup["approval_gates"])
+        self.assertEqual(
+            {"illustration_setup", "character_bible"},
+            {output["kind"] for output in setup["produces"] if output.get("required", True)},
+        )
+        self.assertIn("nam-book-illustration-setup", visuals["depends_on"])
+        self.assertIn("illustration-setup", visuals["approval_gates"])
+        self.assertEqual({"visual_brief"}, {item["kind"] for item in visuals["produces"]})
+        for producer in ("nam-book-illustrate", "nam-book-diagram"):
+            self.assertIn("illustration-setup", capabilities[producer]["approval_gates"])
+        owners = [
+            item["skill"] for item in capabilities.values()
+            if any(output["kind"] == "character_bible" for output in item["produces"])
+        ]
+        self.assertEqual(["nam-book-illustration-setup"], owners)
+
+    def test_all_profiles_include_early_art_setup(self) -> None:
+        for profile_path in (ROOT / "skills" / "asknam" / "references" / "profiles").glob("*.json"):
+            with self.subTest(profile=profile_path.stem):
+                profile = json.loads(profile_path.read_text(encoding="utf-8"))
+                self.assertIn("nam-book-illustration-setup", profile["start_skills"])
+
+    def test_skill_reference_links_stay_inside_sibling_installation(self) -> None:
+        skills_root = (ROOT / "skills").resolve()
+        for markdown_path in skills_root.rglob("*.md"):
+            for target in VALIDATOR.local_markdown_targets(markdown_path):
+                with self.subTest(source=str(markdown_path), target=str(target)):
+                    self.assertTrue(target.is_relative_to(skills_root))
+                    self.assertTrue(target.exists())
+
+    def test_setup_templates_start_unapproved_and_share_project_fields(self) -> None:
+        assets = ROOT / "skills" / "nam-book-illustration-setup" / "assets"
+        setup = json.loads((assets / "illustration-setup.template.json").read_text(encoding="utf-8"))
+        bible = json.loads((assets / "character-bible.template.json").read_text(encoding="utf-8"))
+        self.assertIs(setup["hand_drawn"], True)
+        self.assertEqual("pending", setup["calibration"]["status"])
+        self.assertEqual([], setup["calibration"]["sample_artifact_ids"])
+        for field in ("project_id", "locale", "mascot_mode"):
+            self.assertEqual(setup[field], bible[field])
+        self.assertTrue(setup["open_questions"])
 
 
 if __name__ == "__main__":

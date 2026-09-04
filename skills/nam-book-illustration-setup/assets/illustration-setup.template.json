@@ -1,0 +1,46 @@
+{
+  "project_id": "",
+  "locale": "en-US",
+  "setup_version": "1.0.0",
+  "brief": {
+    "approval_id": "",
+    "artifact_id": null,
+    "sha256": null,
+    "audience": "",
+    "subject": "",
+    "tone": "",
+    "visual_promise": ""
+  },
+  "mascot_mode": "custom",
+  "hand_drawn": true,
+  "visual_tokens": {
+    "contour": "Lightly irregular, controlled hand-drawn contour; legible at final size.",
+    "shape_language": "Simple forms with a clear silhouette.",
+    "palette": [],
+    "texture": "Restrained; keep essential details and label zones clean.",
+    "shading": "Minimal tonal hierarchy appropriate to the project.",
+    "background": "",
+    "typography": "Exact labels are separately typeset or editable vector text."
+  },
+  "references": [],
+  "calibration": {
+    "status": "pending",
+    "sample_artifact_ids": [],
+    "checks": [],
+    "limitations": []
+  },
+  "production": {
+    "formats": [],
+    "placements": [],
+    "trim_size": null,
+    "live_area": null,
+    "minimum_effective_ppi": null,
+    "label_strategy": "Keep exact text editable and independent from generated raster art.",
+    "accessibility": "Preserve hierarchy and meaning without relying on color alone."
+  },
+  "decisions": [],
+  "open_questions": [
+    "Set the project-specific identity and inspect a representative calibration sample."
+  ],
+  "adoption": null
+}

@@ -1,6 +1,6 @@
 {
   "name": "nam-book-studio",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A modular, evidence-aware skill suite for planning, writing, illustrating, assessing, localizing, and publishing books.",
   "author": {
     "name": "Artha Megayasa",
@@ -21,7 +21,7 @@
   "interface": {
     "displayName": "Nam Book Studio",
     "shortDescription": "Build evidence-aware illustrated books",
-    "longDescription": "AskNam coordinates specialist skills for book architecture, research, drafting, teaching design, assessment, original illustration, diagrams, editing, localization, production, and release validation.",
+    "longDescription": "AskNam coordinates book architecture, research, drafting, teaching, assessment, project-specific hand-drawn illustration and mascot setup, diagrams, editing, localization, production, and release validation.",
     "developerName": "Artha Megayasa",
     "category": "Productivity",
     "capabilities": [
@@ -30,7 +30,7 @@
     "websiteURL": "https://github.com/arthamegayasa/nam-book-studio",
     "defaultPrompt": [
       "Use $asknam to turn my idea into a complete book workflow.",
-      "Use $asknam to plan an illustrated exam-prep book with verified sources.",
+      "Use $asknam to set up hand-drawn illustrations and a mascot for my book.",
       "Use $asknam to resume my bilingual book project and choose the next skills."
     ],
     "brandColor": "#C97832",

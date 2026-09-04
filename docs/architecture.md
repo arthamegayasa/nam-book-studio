@@ -27,13 +27,21 @@ missing -> draft -> review -> approved
 ## Routing loop
 
 1. Locate or initialize `.nam-book/project.json`.
-2. Classify the supported route intent: start, resume, revise, audit, illustrate, localize, or publish.
+2. Classify the supported route intent: start, resume, revise, audit, setup-illustration, illustrate, localize, or publish.
 3. Resolve the target mode, locale, audience, content risk, and milestone.
 4. Inspect required artifacts and select the smallest sufficient skill set.
 5. Ask only for a decision whose alternatives materially change the book.
 6. Run independent lanes in parallel when their inputs are approved.
 7. Validate each handoff before recording state.
 8. Continue until the requested milestone is complete or a genuine blocker needs user input.
+
+## Project art direction before production
+
+`nam-book-illustration-setup` owns the early `illustration_setup` and `character_bible` artifacts. It starts from the approved project brief and supplied references, independently of research and manuscript drafting. A project chooses a custom mascot, a supplied identity, the Nam preset, or an explicit mascot-free mode. Hand-drawn treatment remains the default across all four choices.
+
+`nam-book-visuals` consumes this identity and style contract; it owns the later objective-linked figure inventory, not mascot creation. `nam-book-illustrate` follows the selected project's anchors, and `nam-book-diagram` applies the shared style while keeping exact geometry and labels editable. The `illustration-setup` human approval binds both setup artifacts before visual production. A changed style or identity reopens affected visual and integration work without requiring unrelated research or drafting to restart.
+
+Existing Nam assets remain immutable calibration sources for the Nam preset. Legacy project character bibles can be adopted without changing their bytes or removing their approval history. Adoption does not silently approve new art direction: the new setup still needs its own review. See [illustration-setup.md](illustration-setup.md) for the user workflow and the AskNam state protocol for runtime details.
 
 ## Stable identifiers
 

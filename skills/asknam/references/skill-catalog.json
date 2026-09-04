@@ -8,6 +8,7 @@
     { "id": "nam-book-diagram" },
     { "id": "nam-book-edit" },
     { "id": "nam-book-illustrate" },
+    { "id": "nam-book-illustration-setup" },
     { "id": "nam-book-localize" },
     { "id": "nam-book-publish" },
     { "id": "nam-book-research" },
@@ -99,15 +100,27 @@
       ]
     },
     {
+      "skill": "nam-book-illustration-setup",
+      "capability": "illustration-setup",
+      "purpose": "Set project-specific hand-drawn art direction and mascot identity before production.",
+      "invocation": "model",
+      "depends_on": [],
+      "approval_gates": ["project-brief"],
+      "produces": [
+        { "kind": "illustration_setup", "path": "visuals/illustration-setup.json", "cardinality": "one" },
+        { "kind": "character_bible", "path": "visuals/character-bible.json", "cardinality": "one" },
+        { "kind": "illustration_calibration", "path": "visuals/calibration/{artifact_id}", "cardinality": "many", "required": false }
+      ]
+    },
+    {
       "skill": "nam-book-visuals",
       "capability": "visual-direction",
-      "purpose": "Define the original visual system and character bible.",
+      "purpose": "Map approved project art direction to objective-linked chapter visuals.",
       "invocation": "model",
-      "depends_on": ["nam-book-architect", "nam-book-voice"],
-      "approval_gates": ["architecture"],
+      "depends_on": ["nam-book-illustration-setup", "nam-book-architect", "nam-book-voice"],
+      "approval_gates": ["architecture", "illustration-setup"],
       "produces": [
-        { "kind": "visual_brief", "path": "visuals/visual-brief.json", "cardinality": "one" },
-        { "kind": "character_bible", "path": "visuals/character-bible.json", "cardinality": "one" }
+        { "kind": "visual_brief", "path": "visuals/visual-brief.json", "cardinality": "one" }
       ]
     },
     {
@@ -116,7 +129,7 @@
       "purpose": "Produce instructional diagrams tied to claims and learning jobs.",
       "invocation": "model",
       "depends_on": ["nam-book-research", "nam-book-architect", "nam-book-teach", "nam-book-visuals"],
-      "approval_gates": ["architecture"],
+      "approval_gates": ["architecture", "illustration-setup"],
       "produces": [
         { "kind": "diagram_spec", "path": "visuals/diagrams/specs/{artifact_id}.json", "cardinality": "many" },
         { "kind": "diagram_asset", "path": "visuals/diagrams/assets/{artifact_id}.svg", "cardinality": "many" }
@@ -128,7 +141,7 @@
       "purpose": "Create original educational illustrations from approved visual briefs.",
       "invocation": "model",
       "depends_on": ["nam-book-teach", "nam-book-visuals"],
-      "approval_gates": ["character-bible"],
+      "approval_gates": ["illustration-setup"],
       "produces": [
         { "kind": "illustration_brief", "path": "visuals/illustrations/briefs/{artifact_id}.json", "cardinality": "many" },
         { "kind": "illustration_asset", "path": "visuals/illustrations/assets/{artifact_id}.png", "cardinality": "many" }

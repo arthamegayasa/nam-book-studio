@@ -10,11 +10,12 @@ The repository and runtime instructions are English. Book projects currently sup
 
 ## What makes this different
 
-- One explicit orchestrator and thirteen independently invokable specialists inside the installed suite.
+- One explicit orchestrator and fourteen independently invokable specialists inside the installed suite.
 - Three genuinely different modes: `friendly-explainer`, `textbook`, and `exam-prep`.
 - Stable artifact IDs, saved state, approvals, and dependency-aware staleness.
 - Evidence ledgers that distinguish discovery, metadata checks, claim support, and expert review.
-- Original Nam character art plus separate raster-illustration and editable-diagram workflows.
+- Upfront, project-specific hand-drawn art setup: custom mascot, supplied identity, original Nam preset, or no mascot.
+- Separate raster-illustration and editable-diagram workflows with an approved shared visual direction.
 - Objective-linked callouts, visuals, examples, and assessment items.
 - English-Indonesian localization with semantic parity checks.
 - Release gates for evidence, pedagogy, assessment, rights, accessibility, and builds.
@@ -32,8 +33,9 @@ The `friendly-explainer` mode uses approachable explanations, visual anchors, ti
 | `$nam-book-write` | Draft source-grounded chapters from approved specifications |
 | `$nam-book-teach` | Add purposeful explanations, examples, callouts, recaps, and misconception repair |
 | `$nam-book-assess` | Build blueprints, original questions, rationales, and item-quality reviews |
+| `$nam-book-illustration-setup` | Set project art direction, inspect references, define a mascot or mascot-free system, and prepare calibration for approval |
 | `$nam-book-visuals` | Plan visual coverage and choose illustration, diagram, table, or data graphic |
-| `$nam-book-illustrate` | Create character-led raster illustrations with the original Nam visual system |
+| `$nam-book-illustrate` | Create hand-drawn raster illustrations using the project's approved style and selected identity |
 | `$nam-book-diagram` | Produce editable, accessible SVG mechanisms, algorithms, and comparisons |
 | `$nam-book-voice` | Build an authorized voice profile or audit drift; writing and editing apply the profile |
 | `$nam-book-edit` | Perform developmental, line, copy, consistency, and integration edits |
@@ -44,35 +46,34 @@ The `friendly-explainer` mode uses approachable explanations, visual anchors, ti
 ## Workflow
 
 ```text
-Idea or source material
-        |
-        v
-Architecture ----> Research and evidence
-        |                 |
-        +--------+--------+
-                 v
-              Draft
-       +---------+---------+
-       |         |         |
-    Teaching  Assessment  Visual plan
-                           /       \
-                  Illustration   Diagram
-       +---------+---------+---------+
-                 v
-          Voice-aware edit
-                 |
-           Localization
-                 |
-             Proof build
-                 |
-          Release validation
-                 |
-      Final-proof approval
-                 |
-               Release
+Approved project brief
+       |                                  |
+       v                                  v
+Research -> Architecture -> Voice     Illustration setup
+                |             |      references, style, mascot
+                v             v           |
+           Assessment       Draft     Human art approval
+                              |           |
+                           Teaching       |
+                              |           |
+                              +---> Visual plan <--- Architecture + Voice
+                                       |
+                              Illustration / Diagram
+                                       |
+Teaching + Assessment + Visuals -> Voice-aware edit
+                                       |
+                              Optional localization
+                                       |
+                                  Proof build
+                                       |
+                               Release validation
+                                       |
+                              Final-proof approval
+                                       |
+                                     Release
 ```
 
-This is a dependency graph, not a compulsory conveyor belt. AskNam can route a focused request directly to one specialist, resume from an approved stage, or rerun only artifacts made stale by an upstream change.
+This is a workflow overview; the [routing contract](skills/asknam/references/routing.md) defines the exact dependency graph. Illustration setup can start alongside research once the project brief is approved. It does not wait for chapters to be drafted. AskNam can route a focused request directly to one specialist, resume from an approved stage, or rerun only artifacts made stale by an upstream change. Projects without illustrations or diagrams omit the visual lane.
 
 ## Install
 
@@ -84,7 +85,8 @@ Ask the built-in skill installer to install every skill path from this repositor
 Use $skill-installer to install these paths from arthamegayasa/nam-book-studio:
 skills/asknam, skills/nam-book-architect, skills/nam-book-research,
 skills/nam-book-write, skills/nam-book-teach, skills/nam-book-assess,
-skills/nam-book-visuals, skills/nam-book-illustrate, skills/nam-book-diagram,
+skills/nam-book-illustration-setup, skills/nam-book-visuals,
+skills/nam-book-illustrate, skills/nam-book-diagram,
 skills/nam-book-voice, skills/nam-book-edit, skills/nam-book-localize,
 skills/nam-book-publish, and skills/nam-book-validate.
 ```
@@ -119,6 +121,20 @@ Use $asknam to resume the book project in this directory and complete the next u
 
 AskNam asks only for decisions that materially change the result. It records assumptions for everything else.
 
+## Set up illustrations first
+
+```text
+Use $asknam to set up the illustrations before writing this book.
+It is an Indonesian guide to ocean conservation for teenagers.
+Use my attached turtle drawing as the mascot identity and the second image
+only as a line-and-texture reference. Keep a simple, friendly hand-drawn look.
+Show me a calibration sample before producing chapter illustrations.
+```
+
+AskNam selects `$nam-book-illustration-setup` for this request. The specialist separates identity references from style references, records project-specific anchors, and prepares a small calibration sample for human approval. Nam is a selectable preset, not a requirement. A mascot-free book still receives a coherent hand-drawn style contract.
+
+The setup records visual tokens, mascot choice, reference hashes, rights status, cultural context, permitted variations, and continuity checks. Missing reference files or image tools are reported honestly; a written prompt is not presented as a rendered sample. Only approved setup artifacts unlock production. See the [illustration setup guide](docs/illustration-setup.md) for the four modes, examples, and existing-project upgrades.
+
 ## Book modes
 
 | Mode | Reader experience | Typical elements |
@@ -142,9 +158,9 @@ Medical content uses four risk levels:
 
 No disclaimer substitutes for evidence. Without required review, high-risk output remains clearly marked as draft and cannot pass the release gate.
 
-## Nam visual identity
+## Nam preset identity
 
-Nam is an original Bali-starling-inspired page spirit: a compact white paper-like bird, a charcoal folded-page wing, a small swept crest, warm terracotta feet, a restrained woven belt accent, and simple round charcoal eyes. The character is designed to remain recognizable at small sizes and to participate in the concept rather than stand beside it as decoration.
+When a project chooses the Nam preset, Nam is an original Bali-starling-inspired page spirit: a compact white paper-like bird, a charcoal folded-page wing, a small swept crest, warm terracotta feet, a restrained geometric sash accent, and simple round charcoal eyes without blue facial markings. The character is designed to remain recognizable at small sizes and to participate in the concept rather than stand beside it as decoration. These anchors belong to Nam; they are not imposed on a custom mascot.
 
 Balinese cues remain subtle and respectful. Sacred symbols, ceremonial clothing, and religious objects are outside the default visual vocabulary. The canonical model sheet, transparent icon, prompt fragments, provenance, and consistency rules live in `skills/nam-book-illustrate/assets/nam-v1/` and that skill's references.
 
@@ -172,6 +188,8 @@ A project initialized by AskNam stores its control plane at `.nam-book/project.j
     |-- assessment-blueprint.yaml
     |-- items.<locale>.yaml
     |-- visuals/
+    |   |-- illustration-setup.json
+    |   |-- calibration/<artifact_id>/
     |   |-- visual-brief.json
     |   |-- character-bible.json
     |   |-- diagrams/specs/<artifact_id>.json

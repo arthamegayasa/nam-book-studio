@@ -18,7 +18,7 @@ Declare the candidate scope and exact input hashes before checking it. Read [ref
 1. Run `scripts/preflight_project.py` for structural, path, hash, dependency, approval, and evidence-state checks. Treat its output as one input, not the whole audit.
 2. Check claim support separately from source retrieval and metadata. A DOI that resolves proves only metadata resolution. A fetched abstract proves only retrieval. A claim becomes verified only when an identified passage supports it and the required human or expert review is recorded.
 3. Audit objective coverage, pedagogy, answer-key uniqueness, distractor rationales, cross-references, terminology, and semantic parity across locales.
-4. Audit every figure and table for factual fidelity, caption and alt-text agreement, legibility, cultural respect, rights and provenance, and final-size color or grayscale behavior.
+4. Audit every figure and table for factual fidelity, caption and alt-text agreement, legibility, cultural respect, rights and provenance, and final-size color or grayscale behavior. For illustrated or diagram projects, check the current `illustration-setup` approval against both the project `illustration_setup` and `character_bible` artifacts. Compare images to that project's approved anchors and hand-drawn visual tokens; apply the Nam preset's face rules only when Nam is selected. A mascot-free project keeps its explicit `none` choice.
 5. Inspect each requested production format structurally and by rendering. Record unavailable validators and unperformed manual checks explicitly.
 6. Classify findings as blocker, major, minor, or note. Trace each finding to an artifact, stable IDs, evidence, required owner, and retest condition.
 7. Identify downstream artifacts made stale by any failed or changed input. Do not repair content during the independent validation pass.
@@ -29,7 +29,7 @@ Declare the candidate scope and exact input hashes before checking it. Read [ref
 - **Conditional:** no blocker is open, but a major finding, required manual review, or required external validator remains incomplete.
 - **Pass:** every applicable release check ran and no blocker or major finding remains. Minor findings and limitations stay visible.
 
-Human approval remains human: this skill may verify that a recorded approval matches its basis, but it cannot create `medical-expert-signoff`, `character-bible`, or `final-proof` approval.
+Human approval remains human: this skill may verify that a recorded approval matches its basis, but it cannot create `medical-expert-signoff`, `illustration-setup`, or `final-proof` approval. Legacy `character-bible` approval is history, not a substitute for the new setup gate.
 
 ## Output
 

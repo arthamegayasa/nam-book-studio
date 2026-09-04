@@ -1,6 +1,6 @@
 # Visual brief contract
 
-Use this reference when selecting visual formats or writing the project-level visual brief.
+Use this reference when selecting visual formats or writing the project-level visual brief. The approved illustration setup and character bible own art direction and identity; this brief applies them to content and placement.
 
 ## Start with the learning job
 
@@ -22,19 +22,20 @@ State the difficulty and expected reader action. “Break up the page” is not 
 | Content need | Primary form | Reason |
 | --- | --- | --- |
 | Exact nodes, arrows, labels, values, anatomy, chronology, or localization | Editable SVG diagram | Relationships and text remain inspectable and revisable. |
-| Expressive scene, conceptual metaphor, chapter atmosphere, or Nam performing a teaching action | Raster illustration | Composition and gesture carry meaning that exact geometry does not. |
+| Expressive scene, conceptual metaphor, chapter atmosphere, or the selected mascot performing a teaching action | Raster illustration | Composition and gesture carry meaning that exact geometry does not. |
 | Repeated comparison across shared fields | Semantic table | Readers can scan values without decoding a picture. |
 | Quantitative values or trends | Data graphic generated from retained data | The data, transformation, and axes remain reproducible. |
 | Documentary subject | Rights-cleared photograph or source figure | A generated substitute could falsely imply evidence. |
 | Simple statement already clear in prose | No visual | Duplication adds load without adding understanding. |
 
-A hybrid asset keeps its exact diagram layer editable and its illustration layer replaceable. Record both component artifact IDs and their composition method.
+A hybrid asset keeps its exact diagram layer editable and its illustration layer replaceable. Record both component artifact IDs and their composition method. Hand-drawn tokens govern appearance, not factual precision or format: they do not justify baking exact labels into a generated bitmap. In mascot-free mode, plan scenes or relationships without a recurring guide.
 
 ## Figure inventory fields
 
 Each retained entry should include:
 
 - `figure_id`, `chapter_id`, insertion block, locale, and revision;
+- approved setup and bible artifact IDs/revisions/hashes, plus the relevant visual-token references;
 - linked `objective_ids`, `claim_ids`, and `source_ids`;
 - diagnosed reader difficulty, `learning_job`, and expected reader action;
 - chosen kind, routing rationale, and rejected alternatives;

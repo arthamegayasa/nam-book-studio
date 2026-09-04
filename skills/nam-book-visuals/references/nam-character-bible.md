@@ -1,6 +1,6 @@
-# Nam character bible source
+# Nam character bible source: optional Nam preset
 
-Use this reference to create the versioned `character_bible` artifact. The approved artifact, not this prose alone, governs downstream generation.
+Use this reference only when `mascot_mode` is `nam` or an existing Nam project is being retained. The illustration-setup skill uses it to create or adopt a versioned `character_bible`; custom, supplied, and mascot-free projects use their own identity contract. The approved artifact and current `illustration-setup` approval, not this prose alone, govern downstream generation.
 
 ## Identity
 
@@ -52,4 +52,4 @@ Do not claim that generation proves trademark availability, exclusive ownership,
 
 ## Version and review
 
-A character-bible revision records fixed anchors, flexible traits, prohibited drift, palette tokens, scale rules, action library, cultural sources, canonical asset hashes, derivative asset IDs, reviewer, approval basis, and change history. Changes to the face, silhouette, cultural markers, or core palette invalidate prior character-bible approval and make dependent illustrations stale.
+A character-bible revision records fixed anchors, flexible traits, prohibited drift, palette tokens, scale rules, action library, cultural sources, canonical asset hashes, derivative asset IDs, reviewer, approval basis, and change history. Changes to the face, silhouette, cultural markers, or core palette invalidate the current setup approval and make dependent visual work stale. Preserve any legacy `character-bible` approval as history rather than treating it as approval of a new setup.

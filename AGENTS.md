@@ -19,7 +19,8 @@ This repository packages a coordinated set of book-authoring skills. Keep the ru
 - Never turn a failed lookup into a successful evidence status. A DOI resolving does not prove that a source supports a claim.
 - A medical `R3` claim remains blocked until its authoritative evidence and required expert review are recorded.
 - Keep Nam original. Do not add third-party mascot assets, imitate a named character, or add sacred Balinese symbols as decoration.
-- Preserve the approved face design: small round charcoal eyes with tiny white catchlights and no blue eye markings.
+- For the Nam preset, preserve the approved face design: small round charcoal eyes with tiny white catchlights and no blue eye markings. Other mascots follow their project's approved anchors, not Nam's anatomy or palette.
+- Illustration setup owns project art direction and character identity; visual planning consumes them. Keep hand-drawn treatment by default, including mascot-free projects, and require hash-bound setup approval before visual production.
 - Preserve approved work when dependencies change. Mark downstream artifacts stale rather than deleting them.
 - Keep every specialist's shared-schema links resolvable from a normal sibling-skill installation.
 

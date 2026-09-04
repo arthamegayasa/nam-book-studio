@@ -46,6 +46,37 @@ python skills/asknam/scripts/plan_route.py --state .nam-book/project.json --inte
 Validation is read-only. Planning and update commands write atomically. A
 warning requires judgment; an error prevents dispatch.
 
+For an illustration-direction-only request, plan with `--intent setup-illustration`.
+The route contains only `nam-book-illustration-setup`, regardless of feature
+switches or medical risk. Medical evidence checks still apply when content
+production or publication resumes. Omitted nodes are retained as
+`route.parked_nodes` and restored by later replanning; never manually clear them.
+
+## Upgrade an existing visual project
+
+Old manifests remain readable. When validation warns about legacy visual
+ownership, run the explicit migration before the next setup or visual route:
+
+```bash
+python skills/asknam/scripts/update_state.py --state .nam-book/project.json migrate-illustration-setup
+python skills/asknam/scripts/plan_route.py --state .nam-book/project.json --intent setup-illustration
+```
+
+Finish running stages first. Migration is idempotent and updates only the
+manifest: it transfers the existing bible's producer to the setup skill while
+preserving its stable ID, file path, bytes, revision snapshots, and provenance.
+An adoption event records the prior owner. Existing `character-bible` decisions
+remain historical decisions, not approval of the new setup. Visual planning,
+media, and dependent integration/proof work become stale; research, architecture,
+voice, and drafting are preserved.
+
+To adopt the existing bible, inspect its assets and record the setup payload's
+`adoption` object with `character_bible_artifact_id`, current `sha256`, prior
+`approval_ids`, and a reason. Register a reviewed calibration bundle plus the new
+setup; the adopted bible can remain byte-for-byte unchanged. A new-format bible
+declares the same `mascot_mode` as the setup. Both are bound by a fresh
+`illustration-setup` approval; migration alone grants no production approval.
+
 ## Approvals
 
 ```bash
@@ -57,6 +88,19 @@ python skills/asknam/scripts/update_state.py --state .nam-book/project.json appr
 Approval basis hashes make decisions expire when the reviewed bytes change.
 Project-brief approval may have no artifact basis because it approves the
 manifest fields themselves.
+
+For `illustration-setup`, complete the setup node first, then approve with both
+`--basis illustration-setup` and `--basis character-bible` (use the actual IDs).
+The helper inspects the real setup JSON: `mascot_mode` is `custom`, `supplied`,
+`nam`, or `none`; `hand_drawn` is true; `calibration.status` is `passed`; and
+`calibration.sample_artifact_ids` names at least one registered
+`illustration_calibration` input. The sample slot is a directory bundle at
+`visuals/calibration/{artifact_id}` inside the registry root. Keep inspected
+PNG, JPEG, or SVG samples and their labels there in their real formats.
+Tree hashing binds every file in the bundle. This checks recorded inspection
+and fingerprints, not whether an image is aesthetically good or legally cleared.
+Changing a setup, bible, or calibration input expires the paired decision and
+invalidates visual descendants, including those parked by a focused route.
 
 ## Artifact report contract
 

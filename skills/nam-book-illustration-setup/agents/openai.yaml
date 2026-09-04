@@ -1,0 +1,4 @@
+interface:
+  display_name: "Nam Book Illustration Setup"
+  short_description: "Set project hand-drawn art and mascot direction"
+  default_prompt: "Use $nam-book-illustration-setup to establish hand-drawn illustration direction and a project-specific mascot choice before production."

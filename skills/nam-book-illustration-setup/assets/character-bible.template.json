@@ -1,0 +1,23 @@
+{
+  "project_id": "",
+  "locale": "en-US",
+  "identity_version": "1.0.0",
+  "setup_artifact_id": "",
+  "mascot_mode": "custom",
+  "identity": {
+    "name": "",
+    "purpose": "",
+    "silhouette": "",
+    "proportions": "",
+    "facial_rules": "",
+    "fixed_anchors": [],
+    "flexible_traits": [],
+    "prohibited_drift": []
+  },
+  "palette": [],
+  "action_library": [],
+  "cultural_context": [],
+  "canonical_asset_ids": [],
+  "consistency_checks": [],
+  "change_history": []
+}

@@ -151,7 +151,7 @@
         "properties": {
           "approval_id": { "type": "string" },
           "kind": {
-            "enum": ["project-brief", "architecture", "character-bible", "source-content-lock", "medical-expert-signoff", "final-proof"]
+            "enum": ["project-brief", "architecture", "illustration-setup", "character-bible", "source-content-lock", "medical-expert-signoff", "final-proof"]
           },
           "status": { "enum": ["pending", "approved", "rejected", "expired"] },
           "requested_at": { "type": "string", "format": "date-time" },

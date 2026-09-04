@@ -13,6 +13,7 @@ from state_core import (
     decide_approval,
     load_json,
     mark_artifact_stale,
+    migrate_illustration_setup,
     refresh_file_staleness,
     register_artifact,
     save_state,
@@ -78,6 +79,10 @@ def parser() -> argparse.ArgumentParser:
     stale.add_argument("--high-risk-change", action="store_true")
 
     commands.add_parser("refresh-staleness", help="Compare registered hashes with files on disk")
+    commands.add_parser(
+        "migrate-illustration-setup",
+        help="Explicitly adopt legacy visual ownership without rewriting artifact files",
+    )
     return root
 
 
@@ -95,6 +100,7 @@ def main(argv: list[str] | None = None) -> int:
                 note=args.note,
                 reviewer_role=args.role,
                 reviewer_credentials=args.credentials,
+                state_path=args.state,
             )
         elif args.command == "register-artifact":
             result = register_artifact(
@@ -136,6 +142,8 @@ def main(argv: list[str] | None = None) -> int:
                     )
                 )
             }
+        elif args.command == "migrate-illustration-setup":
+            result = migrate_illustration_setup(state)
         else:
             result = {"changed_artifacts": refresh_file_staleness(state, args.state)}
 

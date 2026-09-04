@@ -25,7 +25,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--state", type=Path, required=True)
     parser.add_argument(
         "--intent",
-        choices=["start", "resume", "revise", "audit", "illustrate", "localize", "publish"],
+        choices=["start", "resume", "revise", "audit", "setup-illustration", "illustrate", "localize", "publish"],
         default="resume",
     )
     parser.add_argument("--dry-run", action="store_true")

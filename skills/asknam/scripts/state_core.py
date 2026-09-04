@@ -38,6 +38,7 @@ SUPPORTED_INTENTS = {
     "resume",
     "revise",
     "audit",
+    "setup-illustration",
     "illustrate",
     "localize",
     "publish",
@@ -55,6 +56,7 @@ NODE_STATUSES = {
 }
 ARTIFACT_STATUSES = {"draft", "review", "approved", "locked", "stale", "blocked"}
 APPROVAL_STATUSES = {"pending", "approved", "rejected", "expired"}
+SETUP_NODE = "nam-book-illustration-setup"
 ID_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 ARTIFACT_ID_RE = re.compile(r"^[a-z0-9][a-z0-9._-]*$")
 HASH_RE = re.compile(r"^[a-f0-9]{64}$")
@@ -282,8 +284,8 @@ def create_manifest(
         _approval_record("project-brief", now),
         _approval_record("architecture", now),
     ]
-    if features["illustrations"]:
-        approvals.append(_approval_record("character-bible", now))
+    if features["illustrations"] or features["diagrams"]:
+        approvals.append(_approval_record("illustration-setup", now))
     if target_locales:
         approvals.append(_approval_record("source-content-lock", now))
     if risk_level == "R3":
@@ -349,7 +351,148 @@ def approval_is_current(
             return False
         if source.get("sha256") != basis.get("sha256"):
             return False
+        if approval.get("approval_id") == "illustration-setup" and (
+            source.get("revision") != basis.get("revision")
+            or not artifact_is_fresh(source, artifacts)
+        ):
+            return False
     return True
+
+
+def artifact_is_fresh(
+    artifact: dict[str, Any], artifacts: dict[str, dict[str, Any]],
+    visiting: set[str] | None = None,
+) -> bool:
+    """Check a registered artifact and its transitive input fingerprints."""
+    visiting = set(visiting or ())
+    artifact_id = artifact.get("artifact_id")
+    if artifact_id in visiting or artifact.get("status") in {"stale", "blocked"}:
+        return False
+    if artifact.get("blockers"):
+        return False
+    visiting.add(artifact_id)
+    for basis in artifact.get("inputs", []):
+        source = artifacts.get(basis.get("artifact_id"))
+        if not source or source.get("sha256") != basis.get("sha256"):
+            return False
+        if source.get("revision") != basis.get("revision"):
+            return False
+        if not artifact_is_fresh(source, artifacts, visiting):
+            return False
+    return True
+
+
+def retained_nodes(state: dict[str, Any]) -> list[dict[str, Any]]:
+    """Current nodes win over parked history; parked nodes are never dispatched."""
+    route = state.get("route", {})
+    nodes = {item["id"]: item for item in route.get("parked_nodes", [])}
+    nodes.update({item["id"]: item for item in route.get("nodes", [])})
+    return list(nodes.values())
+
+
+def invalidation_graph(state: dict[str, Any]) -> dict[str, Any]:
+    """Restore canonical edges that a focused route omitted from execution."""
+    nodes = retained_nodes(state)
+    known_ids = {item["id"] for item in nodes}
+    specs = {}
+    for capability in load_catalog()["capabilities"]:
+        for spec in capability.get("route_nodes") or [{
+            "id": capability["skill"], "depends_on": capability["depends_on"],
+        }]:
+            specs[spec["id"]] = spec
+    edges = set()
+    for node in nodes:
+        dependencies = set(node["depends_on"])
+        dependencies.update(specs.get(node["id"], {}).get("depends_on", []))
+        if node["id"] == "nam-book-validate":
+            dependencies.update({"nam-book-research", "nam-book-publish-proof"} & known_ids)
+        edges.update((dep, node["id"]) for dep in dependencies if dep in known_ids)
+    return {"edges": [{"from": source, "to": target} for source, target in sorted(edges)]}
+
+
+def needs_illustration_migration(state: dict[str, Any]) -> bool:
+    return state.get("artifact_registry", {}).get("slots", {}).get(
+        "character_bible", {}
+    ).get("produced_by") == "nam-book-visuals"
+
+
+def migrate_illustration_setup(state: dict[str, Any]) -> dict[str, Any]:
+    """Explicit, idempotent ownership upgrade; no artifact bytes are rewritten."""
+    if not needs_illustration_migration(state):
+        return {"migrated": False, "adopted_artifacts": [], "invalidated_nodes": []}
+    if any(node.get("status") == "running" for node in retained_nodes(state)):
+        raise StateError("Finish or stop running stages before illustration setup migration")
+    catalog = load_catalog()
+    now = utc_now()
+    entries = state["artifact_registry"]["entries"]
+    bibles = [item for item in entries if item["kind"] == "character_bible"]
+    for bible in bibles:
+        if bible["produced_by"] != "nam-book-visuals":
+            raise StateError("Legacy character bible has unexpected ownership; resolve manually")
+        previous_owner = {
+            key: bible[key] for key in ("produced_by", "producer_node", "operation")
+        }
+        state["provenance"].append({
+            "item_id": f"illustration-setup-adoption-{bible['artifact_id']}",
+            "kind": "other",
+            "name": "Explicit illustration setup ownership migration",
+            "origin": "nam-book-studio-v0.1",
+            "license": bible["provenance"]["license"],
+            "notice_path": None,
+            "notes": json.dumps({
+                "artifact_id": bible["artifact_id"], "previous_owner": previous_owner,
+                "new_owner": SETUP_NODE, "adopted_at": now,
+                "revision": bible["revision"], "sha256": bible["sha256"],
+            }, sort_keys=True),
+        })
+        bible["produced_by"] = SETUP_NODE
+        bible["producer_node"] = SETUP_NODE
+    state["artifact_registry"]["slots"].update({
+        kind: slot for kind, slot in _artifact_slots(catalog).items()
+        if slot["produced_by"] == SETUP_NODE
+    })
+    if "illustration-setup" not in approval_index(state):
+        state["approvals"].append(_approval_record("illustration-setup", now))
+
+    nodes = retained_nodes(state)
+    combined = invalidation_graph(state)
+    affected = {"nam-book-visuals", "nam-book-diagram", "nam-book-illustrate"}
+    for node_id in list(affected):
+        affected.update(_descendants(node_id, combined))
+    affected &= {node["id"] for node in nodes}
+    affected_artifacts = {
+        item["artifact_id"] for item in entries
+        if item.get("producer_node", item["produced_by"]) in affected
+    }
+    for item in entries:
+        if item["artifact_id"] in affected_artifacts and item["status"] != "blocked":
+            item["status"] = "stale"
+    for node in nodes:
+        if node["id"] in affected:
+            node["status"] = "stale"
+            node["blockers"] = ["approval:illustration-setup"]
+    for approval in state["approvals"]:
+        if approval["status"] == "approved" and any(
+            basis["artifact_id"] in affected_artifacts for basis in approval["basis"]
+        ):
+            approval["status"] = "expired"
+            approval["note"] = "Expired by explicit illustration setup migration; work preserved."
+    source = next(iter(bibles), None) or next(
+        (item for item in entries if item["artifact_id"] in affected_artifacts), None
+    )
+    if source and affected:
+        state["staleness"].append({
+            "stale_id": _next_stale_id(state), "artifact_id": source["artifact_id"],
+            "reason": "Illustration setup migration requires visual review before production",
+            "detected_at": now, "invalidates_nodes": sorted(affected),
+            "resolved_nodes": [], "resolved_at": None,
+        })
+    # Refresh the same intent; newly gated nodes must not retain completed status.
+    state["route"] = build_route(state, catalog, load_profile(state["profile"]),
+                                 state["route"]["intent"])
+    state["updated_at"] = now
+    return {"migrated": True, "adopted_artifacts": [item["artifact_id"] for item in bibles],
+            "invalidated_nodes": sorted(affected)}
 
 
 def _select_skills(
@@ -357,6 +500,8 @@ def _select_skills(
 ) -> set[str]:
     if intent not in SUPPORTED_INTENTS:
         raise StateError(f"Unsupported intent: {intent}")
+    if intent == "setup-illustration":
+        return {SETUP_NODE}
     if intent in {"start", "resume"}:
         selected = set(profile["start_skills"])
     elif intent == "revise":
@@ -364,7 +509,7 @@ def _select_skills(
     elif intent == "audit":
         selected = {"nam-book-validate"}
     elif intent == "illustrate":
-        selected = {"nam-book-visuals", "nam-book-validate"}
+        selected = {SETUP_NODE, "nam-book-visuals", "nam-book-validate"}
     elif intent == "localize":
         selected = {"nam-book-localize", "nam-book-validate", "nam-book-publish"}
     else:
@@ -383,6 +528,9 @@ def _select_skills(
         selected.add("nam-book-diagram")
     if not features["illustrations"] and not features["diagrams"]:
         selected.discard("nam-book-visuals")
+        selected.discard(SETUP_NODE)
+    elif intent in {"start", "resume"}:
+        selected.add(SETUP_NODE)
     if state["target_locales"] and intent in {"start", "resume", "localize"}:
         selected.add("nam-book-localize")
     if state["medical"]["enabled"] or state["risk_level"] in {"R2", "R3"}:
@@ -395,6 +543,8 @@ def _select_skills(
                 set(record.get("invalidates_nodes", []))
                 - set(record.get("resolved_nodes", []))
             )
+    if selected & {"nam-book-visuals", "nam-book-diagram", "nam-book-illustrate"}:
+        selected.add(SETUP_NODE)
     return selected
 
 
@@ -420,6 +570,18 @@ def build_route(
     intent: str,
 ) -> dict[str, Any]:
     selected = _select_skills(state, profile, intent)
+    if SETUP_NODE in selected:
+        if needs_illustration_migration(state):
+            raise StateError(
+                "Legacy visual ownership requires explicit migrate-illustration-setup "
+                "before planning a setup or visual production route"
+            )
+        state["artifact_registry"]["slots"].update({
+            kind: slot for kind, slot in _artifact_slots(catalog).items()
+            if slot["produced_by"] == SETUP_NODE
+        })
+        if "illustration-setup" not in approval_index(state):
+            state["approvals"].append(_approval_record("illustration-setup", utc_now()))
     index = catalog_index(catalog)
     specialized_nodes = {
         node["id"]
@@ -432,7 +594,7 @@ def build_route(
 
     previous = {
         item.get("id"): item
-        for item in state.get("route", {}).get("nodes", [])
+        for item in retained_nodes(state)
         if isinstance(item, dict)
     }
     open_stale = {
@@ -480,7 +642,7 @@ def build_route(
         if node_id == "nam-book-publish-release" and state["risk_level"] == "R3":
             gates.append("medical-expert-signoff")
         prior_status = previous.get(node_id, {}).get("status", "pending")
-        if node_id in open_stale or skill in open_stale:
+        if node_id in open_stale or skill in open_stale or prior_status == "stale":
             status = "stale"
         elif prior_status == "complete":
             status = "complete"
@@ -522,6 +684,7 @@ def build_route(
         "generated_at": utc_now(),
         "intent": intent,
         "nodes": nodes,
+        "parked_nodes": [item for key, item in previous.items() if key not in included_ids],
         "edges": [
             {"from": dependency, "to": node["id"]}
             for node in nodes
@@ -698,27 +861,41 @@ def mark_artifact_stale(
     producer = artifacts[artifact_id].get(
         "producer_node", artifacts[artifact_id]["produced_by"]
     )
+    nodes = retained_nodes(state)
+    combined = invalidation_graph(state)
     invalidated = {producer}
-    invalidated.update(_descendants(producer, state["route"]))
-    for candidate in artifacts.values():
-        if any(item["artifact_id"] == artifact_id for item in candidate.get("inputs", [])):
-            invalidated.add(candidate.get("producer_node", candidate["produced_by"]))
+    affected_artifacts = {artifact_id}
+    changed = True
+    while changed:
+        before = (set(invalidated), set(affected_artifacts))
+        for node_id in list(invalidated):
+            invalidated.update(_descendants(node_id, combined))
+        for candidate in artifacts.values():
+            candidate_producer = candidate.get("producer_node", candidate["produced_by"])
+            if candidate_producer in invalidated - {producer} or any(
+                item["artifact_id"] in affected_artifacts for item in candidate.get("inputs", [])
+            ):
+                affected_artifacts.add(candidate["artifact_id"])
+                invalidated.add(candidate_producer)
+        changed = before != (invalidated, affected_artifacts)
     if high_risk_change or (
         state["risk_level"] in {"R2", "R3"}
         and artifacts[artifact_id]["produced_by"]
         in {"nam-book-edit", "nam-book-localize"}
     ):
         invalidated.update({"nam-book-research", "nam-book-validate"})
-    invalidated &= {item["id"] for item in state["route"]["nodes"]}
+    invalidated &= {item["id"] for item in nodes}
 
-    artifacts[artifact_id]["status"] = "stale"
-    for node in state["route"]["nodes"]:
+    for affected_id in affected_artifacts:
+        if artifacts[affected_id]["status"] != "blocked":
+            artifacts[affected_id]["status"] = "stale"
+    for node in nodes:
         if node["id"] in invalidated and node["status"] != "skipped":
             node["status"] = "stale"
             node["blockers"] = [f"stale-artifact:{artifact_id}"]
     for approval in state.get("approvals", []):
         if approval["status"] == "approved" and any(
-            item["artifact_id"] == artifact_id for item in approval.get("basis", [])
+            item["artifact_id"] in affected_artifacts for item in approval.get("basis", [])
         ):
             approval["status"] = "expired"
             approval["note"] = f"Expired because {artifact_id} changed."
@@ -943,9 +1120,12 @@ def register_artifact(
                 "A release must cite every proof artifact in the final-proof approval basis"
             )
 
-    if previous and previous["sha256"] != digest:
+    if previous and (previous["sha256"] != digest or produced_by == SETUP_NODE):
         already_open = any(
-            item.get("artifact_id") == artifact_id
+            (item.get("artifact_id") == artifact_id or (
+                produced_by == SETUP_NODE and SETUP_NODE in item.get("invalidates_nodes", [])
+                and SETUP_NODE not in item.get("resolved_nodes", [])
+            ))
             and item.get("resolved_at") is None
             for item in state.get("staleness", [])
         )
@@ -1046,6 +1226,7 @@ def decide_approval(
     note: str,
     reviewer_role: str = "",
     reviewer_credentials: str = "",
+    state_path: Path | None = None,
 ) -> dict[str, Any]:
     approvals = approval_index(state)
     if approval_id not in approvals:
@@ -1066,6 +1247,11 @@ def decide_approval(
     ]
     if decision == "approved" and unusable:
         raise StateError(f"Approval basis contains stale or blocked artifacts: {unusable}")
+
+    if decision == "approved" and approval_id == "illustration-setup":
+        errors = illustration_setup_approval_errors(state, basis_ids, state_path)
+        if errors:
+            raise StateError("; ".join(errors))
 
     if decision == "approved" and approval_id in {
         "medical-expert-signoff",
@@ -1129,6 +1315,94 @@ def decide_approval(
     state["updated_at"] = utc_now()
     refresh_route_statuses(state)
     return approval
+
+
+def illustration_setup_approval_errors(
+    state: dict[str, Any], basis_ids: list[str], state_path: Path | None,
+) -> list[str]:
+    """Validate the paired identity decision, not aesthetic quality itself."""
+    errors: list[str] = []
+    artifacts = artifact_index(state)
+    basis = [artifacts[item] for item in basis_ids if item in artifacts]
+    kinds = {item["kind"] for item in basis}
+    if not {"illustration_setup", "character_bible"}.issubset(kinds):
+        return ["Illustration-setup approval must bind illustration_setup and character_bible"]
+    node = next((item for item in retained_nodes(state) if item["id"] == SETUP_NODE), None)
+    if not node or node["status"] != "complete":
+        errors.append("Illustration-setup approval requires completed setup stage")
+    for entry in basis:
+        if not artifact_is_fresh(entry, artifacts):
+            errors.append(f"Illustration-setup basis is not fresh: {entry['artifact_id']}")
+    pair = [item for item in basis if item["kind"] in {"illustration_setup", "character_bible"}]
+    if any(item["producer_node"] != SETUP_NODE for item in pair):
+        errors.append("Illustration setup and bible must be registered under the setup stage")
+    if state_path is None:
+        return errors + ["Illustration-setup approval requires the manifest path to inspect calibration"]
+    setup = next(item for item in pair if item["kind"] == "illustration_setup")
+    try:
+        setup_path = resolve_artifact_path(state_path, setup["path"])
+        if sha256_path(setup_path)[0] != setup["sha256"]:
+            return errors + ["Illustration setup bytes differ from the registered hash"]
+        payload = load_json(setup_path)
+        if payload.get("mascot_mode") not in {"custom", "supplied", "nam", "none"}:
+            errors.append("Illustration setup requires mascot_mode custom, supplied, nam, or none")
+        if payload.get("hand_drawn") is not True:
+            errors.append("Illustration setup must preserve hand_drawn: true")
+        bible = next(item for item in pair if item["kind"] == "character_bible")
+        bible_path = resolve_artifact_path(state_path, bible["path"])
+        try:
+            bible_payload = json.loads(bible_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            bible_payload = {}  # Only an explicit migrated adoption may use legacy text.
+        if not isinstance(bible_payload, dict):
+            bible_payload = {}
+        if "mascot_mode" in bible_payload:
+            if bible_payload["mascot_mode"] != payload.get("mascot_mode"):
+                errors.append("Illustration setup and character bible mascot_mode must match")
+            if bible_payload["mascot_mode"] == "none" and (
+                "identity" not in bible_payload or bible_payload["identity"] is not None
+            ):
+                errors.append("Mascot-free character bible requires identity: null")
+            elif bible_payload["mascot_mode"] != "none" and not isinstance(
+                bible_payload.get("identity"), dict
+            ):
+                errors.append("A selected mascot requires an identity object in its character bible")
+        else:
+            if payload.get("mascot_mode") == "none":
+                errors.append("Mascot-free setup requires a new bible with identity: null, not a legacy mascot adoption")
+            adoption = payload.get("adoption") or {}
+            migration = next((item for item in state.get("provenance", [])
+                              if item.get("item_id") == f"illustration-setup-adoption-{bible['artifact_id']}"), {})
+            try:
+                migration_notes = json.loads(migration.get("notes", "{}"))
+            except json.JSONDecodeError:
+                migration_notes = {}
+            if (adoption.get("character_bible_artifact_id") != bible["artifact_id"]
+                or adoption.get("sha256") != bible["sha256"]
+                or migration_notes.get("artifact_id") != bible["artifact_id"]
+                or migration_notes.get("revision") != bible["revision"]
+                or migration_notes.get("sha256") != bible["sha256"]
+                or migration_notes.get("new_owner") != SETUP_NODE):
+                errors.append("Legacy character bible requires explicit migration and hash-bound adoption")
+        calibration = payload.get("calibration", {})
+        samples = calibration.get("sample_artifact_ids", [])
+        if calibration.get("status") != "passed" or not samples:
+            errors.append("Illustration setup requires inspected, passed calibration samples")
+        input_ids = {item["artifact_id"] for item in setup.get("inputs", [])}
+        for sample_id in samples:
+            sample = artifacts.get(sample_id, {})
+            if sample_id not in input_ids or sample.get("kind") != "illustration_calibration":
+                errors.append(f"Calibration sample must be a registered setup input: {sample_id}")
+                continue
+            sample_path = resolve_artifact_path(state_path, sample["path"])
+            if not artifact_is_fresh(sample, artifacts) or sha256_path(sample_path)[0] != sample["sha256"]:
+                errors.append(f"Calibration sample is stale or changed: {sample_id}")
+        for entry in pair:
+            if sha256_path(resolve_artifact_path(state_path, entry["path"]))[0] != entry["sha256"]:
+                errors.append(f"Illustration setup basis bytes changed: {entry['artifact_id']}")
+    except (StateError, OSError, UnicodeError, AttributeError, TypeError) as exc:
+        errors.append(f"Cannot inspect illustration setup calibration: {exc}")
+    return errors
 
 
 def transition_node(state: dict[str, Any], target: str, status: str) -> dict[str, Any]:
@@ -1360,6 +1634,10 @@ def validate_state(
     if not isinstance(slots, dict):
         errors.append("artifact_registry.slots must be an object")
         slots = {}
+    if needs_illustration_migration(state):
+        warnings.append(
+            "Legacy visual ownership: run migrate-illustration-setup before a new setup or visual route"
+        )
     for kind, slot in slots.items():
         try:
             ensure_relative_path(slot["path"])
@@ -1481,6 +1759,12 @@ def validate_state(
             errors.append(f"Approval {approval.get('approval_id')} has invalid status")
         if approval.get("status") == "approved" and not approval.get("decided_by"):
             errors.append(f"Approval {approval.get('approval_id')} has no decision maker")
+        if approval.get("approval_id") == "illustration-setup" and approval.get("status") == "approved":
+            errors.extend(illustration_setup_approval_errors(
+                state, [item["artifact_id"] for item in approval.get("basis", [])], state_path
+            ))
+            if not approval_is_current(state, approval):
+                errors.append("Illustration-setup approval must expire because its basis changed")
         for basis in approval.get("basis", []):
             source = artifacts.get(basis.get("artifact_id"))
             if source is None:
@@ -1544,6 +1828,14 @@ def validate_state(
     known_approvals = set(approval_ids)
     catalog = load_catalog(base)
     known_skills = set(catalog_index(catalog))
+    parked_ids = [item.get("id") for item in route.get("parked_nodes", [])]
+    if len(parked_ids) != len(set(parked_ids)) or set(parked_ids) & {
+        item.get("id") for item in route.get("nodes", [])
+    }:
+        errors.append("Parked node ids must be unique and disjoint from the current route")
+    for node in route.get("parked_nodes", []):
+        if node.get("skill") not in known_skills or node.get("status") not in NODE_STATUSES:
+            errors.append(f"Invalid parked route node: {node.get('id')}")
     for node in route.get("nodes", []):
         if node.get("skill") not in known_skills:
             errors.append(f"Route contains unknown skill {node.get('skill')}")
@@ -1576,7 +1868,7 @@ def validate_state(
         None,
     )
     validation_node = next(
-        (item for item in route.get("nodes", []) if item.get("id") == "nam-book-validate"),
+        (item for item in retained_nodes(state) if item.get("id") == "nam-book-validate"),
         None,
     )
     final_proof_approval = approval_index(state).get("final-proof", {})
@@ -1609,7 +1901,7 @@ def validate_state(
             "required_approvals", []
         ):
             errors.append("R3 publication release must require medical-expert-signoff")
-    if state["risk_level"] in {"R2", "R3"}:
+    if state["risk_level"] in {"R2", "R3"} and route.get("intent") != "setup-illustration":
         route_skills = {item.get("skill") for item in route.get("nodes", [])}
         if "nam-book-research" not in route_skills or "nam-book-validate" not in route_skills:
             errors.append("R2/R3 routes require research and validation")
@@ -1626,7 +1918,7 @@ def validate_state(
                 f"{sorted(unknown_resolved)}"
             )
         for node_id in record.get("invalidates_nodes", []):
-            node = next((item for item in route.get("nodes", []) if item.get("id") == node_id), None)
+            node = next((item for item in retained_nodes(state) if item.get("id") == node_id), None)
             if node_id in resolved_nodes:
                 if node and node.get("status") != "complete":
                     errors.append(f"Resolved stale node {node_id} is not complete")

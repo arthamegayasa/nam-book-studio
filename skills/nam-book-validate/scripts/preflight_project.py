@@ -272,9 +272,16 @@ def check_registry(
         if not nonempty_string(operation) or not SKILL_RE.fullmatch(operation):
             audit.error("artifact_operation", "operation must be lowercase kebab-case.", location)
         route_value = manifest.get("route")
+        route_items = (
+            route_value.get("nodes", []) + route_value.get("parked_nodes", [])
+            if isinstance(route_value, dict)
+            and isinstance(route_value.get("nodes", []), list)
+            and isinstance(route_value.get("parked_nodes", []), list)
+            else []
+        )
         route_nodes = {
             item.get("id"): item
-            for item in (route_value.get("nodes", []) if isinstance(route_value, dict) else [])
+            for item in route_items
             if isinstance(item, dict) and nonempty_string(item.get("id"))
         }
         route_node = route_nodes.get(producer_node)
@@ -512,8 +519,183 @@ def check_route(manifest: dict[str, Any], audit: Audit) -> None:
         audit.error("route_cycle", "Route dependencies contain a cycle.", "project.route")
 
 
+def check_illustration_setup_basis(
+    manifest: dict[str, Any],
+    entries: dict[str, dict[str, Any]],
+    basis: list[Any],
+    paths: dict[str, Path],
+    audit: Audit,
+    location: str,
+) -> None:
+    """Check setup-specific readiness; art judgment remains a human review."""
+    basis_entries = [
+        entries[item["artifact_id"]]
+        for item in basis
+        if isinstance(item, dict) and nonempty_string(item.get("artifact_id")) and item["artifact_id"] in entries
+    ]
+    required_kinds = {"illustration_setup", "character_bible"}
+    present = {entry.get("kind") for entry in basis_entries}
+    if not required_kinds <= present:
+        audit.error(
+            "illustration_setup_basis_incomplete",
+            "Illustration setup approval must name both illustration_setup and character_bible artifacts.",
+            location,
+        )
+
+    route = manifest.get("route")
+    route_items: list[Any] = []
+    if isinstance(route, dict):
+        for key in ("nodes", "parked_nodes"):
+            if isinstance(route.get(key), list):
+                route_items.extend(route[key])
+    setup_nodes = [
+        node for node in route_items
+        if isinstance(node, dict) and node.get("id") == "nam-book-illustration-setup"
+    ]
+    if (
+        len(setup_nodes) != 1
+        or setup_nodes[0].get("skill") != "nam-book-illustration-setup"
+        or setup_nodes[0].get("status") != "complete"
+        or setup_nodes[0].get("blockers")
+    ):
+        audit.error(
+            "illustration_setup_stage_incomplete",
+            "Illustration setup approval requires one completed, unblocked setup stage (active or parked).",
+            location,
+        )
+
+    stale_records = manifest.get("staleness", [])
+    stale_ids = {
+        record.get("artifact_id")
+        for record in (stale_records if isinstance(stale_records, list) else [])
+        if isinstance(record, dict)
+        and not record.get("resolved_at")
+        and nonempty_string(record.get("artifact_id"))
+        and entries.get(record["artifact_id"], {}).get("producer_node")
+        not in (record.get("resolved_nodes") or [])
+    }
+    visited: set[str] = set()
+    visiting: set[str] = set()
+    setup_payloads: list[dict[str, Any]] = []
+
+    def check_fresh(artifact_id: str) -> None:
+        if artifact_id in visiting:
+            audit.error("illustration_setup_input_cycle", "Setup input dependencies contain a cycle.", location)
+            return
+        if artifact_id in visited:
+            return
+        artifact = entries.get(artifact_id)
+        if artifact is None:
+            audit.error("illustration_setup_input_missing", f"Setup input {artifact_id!r} is not registered.", location)
+            return
+        visiting.add(artifact_id)
+        if artifact.get("status") not in {"draft", "review", "approved", "locked"} or artifact.get("blockers") or artifact_id in stale_ids:
+            audit.error("illustration_setup_input_not_fresh", f"Setup basis or input {artifact_id!r} is stale or blocked.", location)
+        inputs = artifact.get("inputs")
+        if not isinstance(inputs, list):
+            audit.error("illustration_setup_inputs_invalid", f"Setup basis or input {artifact_id!r} needs an inputs array.", location)
+        else:
+            for item in inputs:
+                if not isinstance(item, dict) or not nonempty_string(item.get("artifact_id")):
+                    audit.error("illustration_setup_input_invalid", "Setup input reference is malformed.", location)
+                    continue
+                source = entries.get(item["artifact_id"])
+                if source is not None and (item.get("revision") != source.get("revision") or item.get("sha256") != source.get("sha256")):
+                    audit.error("illustration_setup_input_stale", f"Setup input reference to {item['artifact_id']!r} is out of date.", location)
+                check_fresh(item["artifact_id"])
+        visiting.remove(artifact_id)
+        visited.add(artifact_id)
+
+    for entry in basis_entries:
+        check_fresh(entry["artifact_id"])
+        if entry.get("kind") not in required_kinds:
+            continue
+        if entry.get("producer_node") != "nam-book-illustration-setup" or entry.get("produced_by") != "nam-book-illustration-setup":
+            audit.error(
+                "illustration_setup_producer_mismatch",
+                "Setup and bible basis artifacts must belong to the setup stage; migrate a legacy bible explicitly.",
+                location,
+            )
+        if entry.get("kind") != "illustration_setup":
+            continue
+        setup_path = paths.get(entry["artifact_id"])
+        if setup_path is None:
+            audit.error("illustration_setup_payload_missing", "Cannot inspect the registered setup payload.", location)
+            continue
+        payload = load_json(setup_path, audit, f"setup:{entry['artifact_id']}")
+        if not isinstance(payload, dict):
+            audit.error("illustration_setup_payload_invalid", "Setup payload must be a JSON object.", location)
+            continue
+        setup_payloads.append(payload)
+        if payload.get("mascot_mode") not in ("custom", "supplied", "nam", "none"):
+            audit.error("illustration_setup_mascot_mode", "Setup must choose custom, supplied, nam, or none mascot mode.", location)
+        if payload.get("hand_drawn") is not True:
+            audit.error("illustration_setup_hand_drawn", "Setup must retain the hand-drawn foundation.", location)
+        calibration = payload.get("calibration")
+        samples = calibration.get("sample_artifact_ids") if isinstance(calibration, dict) else None
+        if not isinstance(calibration, dict) or calibration.get("status") != "passed" or not isinstance(samples, list) or not samples:
+            audit.error("illustration_setup_calibration_incomplete", "Setup needs passed calibration with registered sample artifact IDs.", location)
+            continue
+        entry_inputs = entry.get("inputs")
+        setup_inputs = {
+            item.get("artifact_id") for item in (entry_inputs if isinstance(entry_inputs, list) else [])
+            if isinstance(item, dict) and nonempty_string(item.get("artifact_id"))
+        }
+        for sample_id in samples:
+            sample = entries.get(sample_id) if isinstance(sample_id, str) else None
+            if sample is None or sample.get("kind") != "illustration_calibration" or sample_id not in setup_inputs:
+                audit.error("illustration_setup_calibration_basis", "Every calibration sample must be a registered illustration_calibration artifact in setup inputs.", location)
+
+    for bible in (entry for entry in basis_entries if entry.get("kind") == "character_bible"):
+        bible_path = paths.get(bible["artifact_id"])
+        if bible_path is None:
+            audit.error("illustration_setup_bible_missing", "Cannot inspect the registered character bible.", location)
+            continue
+        try:
+            bible_text = bible_path.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError) as exc:
+            audit.error("illustration_setup_bible_unreadable", f"Cannot read character bible: {exc}", location)
+            continue
+        try:
+            bible_payload = json.loads(bible_text)
+        except json.JSONDecodeError:
+            bible_payload = None  # A migrated legacy bible may be Markdown.
+        for setup in setup_payloads:
+            if isinstance(bible_payload, dict) and "mascot_mode" in bible_payload:
+                if bible_payload["mascot_mode"] != setup.get("mascot_mode"):
+                    audit.error("illustration_setup_mascot_mismatch", "Setup and character bible must select the same mascot mode.", location)
+                if bible_payload["mascot_mode"] == "none" and ("identity" not in bible_payload or bible_payload["identity"] is not None):
+                    audit.error("illustration_setup_none_identity", "A mascot-free character bible must explicitly set identity to null.", location)
+                elif bible_payload["mascot_mode"] != "none" and not isinstance(bible_payload.get("identity"), dict):
+                    audit.error("illustration_setup_identity_missing", "A character bible with a mascot must define an identity object.", location)
+                continue
+            if setup.get("mascot_mode") == "none":
+                audit.error("illustration_setup_none_legacy_bible", "Mascot-free setup requires a new explicit mascot_mode:none, identity:null bible; a legacy identity cannot substitute.", location)
+                continue
+            adoption = setup.get("adoption")
+            provenance = manifest.get("provenance", [])
+            migration_matches = False
+            for event in (provenance if isinstance(provenance, list) else []):
+                if not isinstance(event, dict) or event.get("item_id") != f"illustration-setup-adoption-{bible['artifact_id']}":
+                    continue
+                try:
+                    notes = json.loads(event.get("notes", ""))
+                except (TypeError, json.JSONDecodeError):
+                    continue
+                if isinstance(notes, dict) and all(notes.get(key) == bible.get(key) for key in ("artifact_id", "revision", "sha256")) and notes.get("new_owner") == "nam-book-illustration-setup":
+                    migration_matches = True
+            if (
+                not isinstance(adoption, dict)
+                or adoption.get("character_bible_artifact_id") != bible["artifact_id"]
+                or adoption.get("sha256") != bible["sha256"]
+                or not migration_matches
+            ):
+                audit.error("illustration_setup_legacy_adoption_missing", "A legacy bible without mascot_mode needs setup adoption ID/hash and the matching explicit migration provenance event.", location)
+
+
 def check_approvals(
-    manifest: dict[str, Any], entries: dict[str, dict[str, Any]], phase: str, audit: Audit
+    manifest: dict[str, Any], entries: dict[str, dict[str, Any]], phase: str, audit: Audit,
+    paths: dict[str, Path] | None = None,
 ) -> None:
     approvals = manifest.get("approvals")
     if not isinstance(approvals, list):
@@ -522,6 +704,7 @@ def check_approvals(
     seen_ids: set[str] = set()
     approved_kinds: set[str] = set()
     for index, approval in enumerate(approvals):
+        errors_before = len(audit.errors)
         location = f"project.approvals[{index}]"
         if not require_fields(approval, ("approval_id", "kind", "status", "requested_at", "basis"), audit, location):
             continue
@@ -536,7 +719,6 @@ def check_approvals(
         if status not in APPROVAL_STATUSES:
             audit.error("approval_status", f"Unknown approval status: {status!r}", location)
         if status == "approved":
-            approved_kinds.add(str(approval.get("kind")))
             if not nonempty_string(approval.get("decided_at")) or not nonempty_string(approval.get("decided_by")):
                 audit.error("approval_decision_missing", "Approved record needs decided_at and decided_by.", location)
         basis = approval.get("basis")
@@ -561,12 +743,18 @@ def check_approvals(
                 audit.error("approval_artifact_id", "Approval basis artifact_id must be non-empty.", item_location)
                 continue
             artifact = entries.get(basis_artifact_id)
+            report_basis = audit.error if status == "approved" else audit.note
             if artifact is None:
-                audit.error("approval_artifact_missing", "Approval basis names an unregistered artifact.", item_location)
+                report_basis("approval_artifact_missing", "Approval basis names an unregistered artifact.", item_location)
             elif item.get("sha256") != artifact.get("sha256"):
-                audit.error("approval_hash_stale", "Approval basis hash no longer matches the registry.", item_location)
+                report_basis("approval_hash_stale", "Approval basis hash no longer matches the registry.", item_location)
             elif item.get("revision") != artifact.get("revision"):
-                audit.error("approval_revision_stale", "Approval basis revision no longer matches the registry.", item_location)
+                report_basis("approval_revision_stale", "Approval basis revision no longer matches the registry.", item_location)
+            elif status == "approved" and (artifact.get("status") in {"stale", "blocked"} or artifact.get("blockers")):
+                audit.error("approval_basis_not_fresh", "Approved basis artifact is stale or blocked.", item_location)
+
+        if status == "approved" and approval.get("kind") == "illustration-setup":
+            check_illustration_setup_basis(manifest, entries, basis, paths or {}, audit, location)
 
         if status == "approved" and approval.get("kind") == "medical-expert-signoff":
             if not nonempty_string(approval.get("reviewer_role")) or not nonempty_string(approval.get("reviewer_credentials")):
@@ -576,15 +764,17 @@ def check_approvals(
                     location,
                 )
 
+        if status == "approved" and len(audit.errors) == errors_before:
+            approved_kinds.add(str(approval.get("kind")))
+
     features = manifest.get("features") if isinstance(manifest.get("features"), dict) else {}
-    medical = manifest.get("medical") if isinstance(manifest.get("medical"), dict) else {}
     if phase == "release":
         if "final-proof" not in approved_kinds:
             audit.error("final_proof_missing", "Release requires an approved hash-bound final-proof record.", "project.approvals")
         if manifest.get("risk_level") == "R3" and "medical-expert-signoff" not in approved_kinds:
             audit.error("expert_signoff_missing", "R3 release requires approved medical-expert-signoff.", "project.approvals")
-        if features.get("illustrations") and "character-bible" not in approved_kinds:
-            audit.error("character_bible_approval_missing", "Illustrated release requires approved character-bible basis.", "project.approvals")
+        if (features.get("illustrations") or features.get("diagrams")) and "illustration-setup" not in approved_kinds:
+            audit.error("illustration_setup_approval_missing", "Release with illustrations or diagrams requires current illustration-setup approval bound to setup and bible artifacts; legacy character-bible approval alone is insufficient.", "project.approvals")
 
 
 def find_evidence_path(
@@ -813,7 +1003,7 @@ def main() -> int:
         counts["staleness_records"] = len(manifest.get("staleness", [])) if isinstance(manifest.get("staleness"), list) else 0
         check_staleness(manifest, entries, args.phase, audit)
         check_route(manifest, audit)
-        check_approvals(manifest, entries, args.phase, audit)
+        check_approvals(manifest, entries, args.phase, audit, paths)
         check_medical_context(manifest, args.phase, audit)
 
         evidence_path = find_evidence_path(args.evidence, entries, paths)

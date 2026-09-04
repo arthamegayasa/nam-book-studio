@@ -51,6 +51,8 @@ Specify:
 - font strategy, embedding or conversion policy, and locale expansion allowance;
 - grayscale, low-vision, and small-screen test sizes.
 
+Link the approved `illustration_setup` and `character_bible` artifact IDs, revisions, and hashes. Map their hand-drawn visual tokens to editable SVG properties. Record which features stay precise: arrowheads, boundaries that encode values, alignment that carries meaning, and all labels. For `mascot_mode: none`, keep the diagram mascot-free; otherwise use a mascot only for the learning action specified in the visual brief.
+
 Do not hard-code line breaks until the target locale and final placement are known. Keep labels in identifiable `<text>` elements and use stable IDs so localization can replace text without reconstructing the diagram.
 
 ## Review record

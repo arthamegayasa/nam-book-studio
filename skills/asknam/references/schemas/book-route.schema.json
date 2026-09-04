@@ -9,7 +9,7 @@
     "route_version": { "const": "1.0.0" },
     "generated_at": { "type": "string", "format": "date-time" },
     "intent": {
-      "enum": ["start", "resume", "revise", "audit", "illustrate", "localize", "publish"]
+      "enum": ["start", "resume", "revise", "audit", "setup-illustration", "illustrate", "localize", "publish"]
     },
     "nodes": {
       "type": "array",
@@ -55,6 +55,11 @@
           }
         }
       }
+    },
+    "parked_nodes": {
+      "description": "Historical nodes omitted from this focused route; never dispatched until replanned.",
+      "type": "array",
+      "items": { "$ref": "#/properties/nodes/items" }
     },
     "edges": {
       "type": "array",

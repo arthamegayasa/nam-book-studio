@@ -20,6 +20,7 @@ EXPECTED_SKILLS = {
     "nam-book-diagram",
     "nam-book-edit",
     "nam-book-illustrate",
+    "nam-book-illustration-setup",
     "nam-book-localize",
     "nam-book-publish",
     "nam-book-research",

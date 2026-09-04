@@ -9,13 +9,13 @@ An illustration brief must state:
 - the `figure_id`, source block, objective IDs, and learning job;
 - the single visual thesis and what a reader should understand;
 - facts that may appear and details the image must leave unspecified;
-- Nam's action, gaze, emotional register, and relationship to the concept;
+- the selected mascot's action, gaze, emotional register, and relationship to the concept, or the scene's main action in mascot-free mode;
 - composition, hierarchy, quiet space, crop-safe area, and binding side;
 - master aspect ratio and each required placement size;
 - locale, caption, alt-text intent, and any later typeset labels;
-- reference asset IDs and hashes, rights status, cultural review, and reviewers.
+- setup, bible, and calibration asset IDs/revisions/hashes, reference rights status, cultural review, and reviewers.
 
-Resolve contradictions in the brief before generation. The latest approved visual brief and character bible outrank an older prompt or example.
+Resolve contradictions in the brief before generation. The current approved setup, character bible, and visual brief outrank an older prompt or example. Book-facing labels, captions, and alt text follow the project locale; production instructions and provenance fields stay in English.
 
 ## Prompt construction
 
@@ -23,13 +23,15 @@ Describe the image in this order:
 
 1. deliverable and exact composition;
 2. learning job and one visual thesis;
-3. approved Nam anchors and action;
+3. approved project identity anchors and action, or mascot-free scene rules;
 4. supported objects and relationships;
 5. line, color, space, and mood;
 6. crop, background, and label-safe zones;
 7. explicit factual, cultural, and continuity constraints.
 
-Use the `nam-v1` assets only as character calibration. Create a fresh composition for the current content. Avoid another project's mascot, signature composition, publisher trade dress, or named living artist style.
+Use the selected project's approved calibration assets. In Nam mode, the `nam-v1` assets supply character calibration; other modes must not inherit them. Create a fresh composition for the current content. Translate style references into observable line, texture, palette, and shape attributes without importing another project's mascot or signature composition. Keep supplied asset usage within its recorded permission.
+
+Maintain the approved hand-drawn character: controlled contour variation, clear simplified forms, and restrained texture. Match the project tokens rather than adding roughness indiscriminately. Exact data, geometry, warning cues, and labels remain precise and editable.
 
 Generate without embedded explanatory prose when exact text matters. Store the approved label strings separately, then typeset them after generation or move the work to an editable SVG diagram.
 
@@ -68,9 +70,10 @@ Use the cultural rules from the approved character bible. Original geometric acc
 
 ## Visual QA
 
-- Nam matches the approved silhouette, page-white body, charcoal features, crest, books, sash, and orange feet.
-- Eyes are small, round, charcoal, and warm with tiny white catchlights; no blue facial marking appears.
-- Nam performs the teaching action and does not function as a corner sticker.
+- The selected mascot matches its approved silhouette, face, proportions, palette, and fixed anchors; mascot-free scenes contain no accidental recurring guide.
+- In Nam mode, check the [Nam preset anchors](../../nam-book-visuals/references/nam-character-bible.md), including the round charcoal eyes and absence of blue facial markings. These are Nam-specific, not universal mascot anatomy.
+- The character or scene performs the learning action rather than functioning as a corner sticker.
+- Linework, simplification, and texture match the approved hand-drawn tokens at final placement size.
 - The illustration carries one main thesis and has a readable focal hierarchy.
 - Unsupported labels, symbols, anatomical details, and cultural objects are absent.
 - Text-safe zones are clean and the crop remains usable at final placement.

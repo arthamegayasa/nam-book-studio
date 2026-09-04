@@ -1,6 +1,6 @@
 ---
 name: asknam
-description: Route and run a Nam Book Studio project. Invoke explicitly to start, resume, revise, audit, illustrate, localize, or publish a book through the smallest sufficient specialist workflow.
+description: Route and run a Nam Book Studio project. Invoke explicitly to start, resume, set up illustration direction, revise, audit, illustrate, localize, or publish through the smallest sufficient specialist workflow.
 ---
 
 # AskNam
@@ -24,6 +24,14 @@ For a new project, settle only decisions that change the route:
 - requested deliverables
 - assessment, illustration, and diagram needs
 - whether the subject is medical and its `R0`-`R3` risk
+
+For projects needing illustrations or diagrams, `nam-book-illustration-setup`
+starts after the approved brief, independently of research. It settles reference
+images, hand-drawn style, and a project-specific mascot choice (`custom`,
+`supplied`, `nam`, or `none`) before chapter visual planning. AskNam does not
+silently choose Nam for every book. Use the focused `setup-illustration` intent
+when the user requests only this decision, even if visual feature switches are
+currently off; that intent does not enable production or manuscript work.
 
 Medical work also requires jurisdiction, evidence cutoff, and a
 revalidation-before-export date. Summarize these decisions and obtain the
@@ -77,6 +85,12 @@ approved. Record the decision maker and artifact hashes as the approval basis.
 Continue automatically after approval; stop on rejection, unresolved evidence,
 rights uncertainty, or a specialist failure that changes the route.
 
+The `illustration-setup` gate binds both `illustration_setup` and
+`character_bible` after the setup stage is complete. Show the inspected
+calibration bundle before asking for approval; an old `character-bible` approval
+does not substitute. For legacy ownership or adopting an existing Nam bible,
+follow the explicit migration in [state-protocol.md](references/state-protocol.md).
+
 For medical content or any `R2`/`R3` claim, read
 [medical-safety.md](references/medical-safety.md) before dispatch and before
 publication.
@@ -97,6 +111,11 @@ visible to the model. The catalog records the bundle; a failed explicit call is
 the evidence that execution is unavailable.
 
 ## Completion
+
+For `setup-illustration`, return the setup, mascot bible, and calibration paths
+with the actual approval status. Stop at that milestone; pending user approval
+is a handoff, not an approved production direction. Resume the book pipeline
+only when the user requests it.
 
 The project is complete only when all selected nodes are complete, no open
 staleness records or blocking validation findings remain, required approvals are

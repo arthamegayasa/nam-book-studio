@@ -12,12 +12,16 @@ one project uses only the smallest sufficient subset.
 | `resume` | Same capability set as start | Fresh completed nodes remain complete; stale descendants reopen |
 | `revise` | Edit → proof → validate → release | Research and invalidated descendants when risk or changed inputs require them |
 | `audit` | Validate | Research for medical or R2/R3 evidence |
-| `illustrate` | Visual direction → requested media → validate | Illustration and diagram lanes follow feature switches |
+| `setup-illustration` | Project illustration setup only | Available even with visual feature switches off; existing work is parked |
+| `illustrate` | Illustration setup → visual planning → requested media → validate | Illustration and diagram lanes follow feature switches |
 | `localize` | Localize → proof → validate → release | Research when high-risk meaning changes |
 | `publish` | Proof → validate → release | Research when medical evidence is stale |
 
 Use `revise` when content changes. Use `audit` for a read-only quality finding.
 Use `publish` only for rendering an already integrated edition.
+Use `setup-illustration` to establish or change the reference images, mascot, and
+hand-drawn identity before planning chapters. It neither writes a manuscript nor
+enables visual feature switches. A completed setup remains reusable on `resume`.
 
 ## Profile boundary
 
@@ -37,7 +41,7 @@ another publisher's text, character, page design, or trade dress.
 ```text
 research → architecture → voice → writing → teaching ─┬→ diagrams ───┐
           architecture + research ───────→ assessment ─┤              │
-          architecture + voice ──────────→ visuals ────┴→ illustration│
+setup + architecture + voice ────────────→ visuals ────┴→ illustration│
                                                                      ↓
                                                                    editing
                                                                      ↓
@@ -52,12 +56,27 @@ Only selected nodes appear in the compiled DAG. Dependencies on omitted nodes
 must already be satisfied by fresh registered artifacts; otherwise replan to
 include the producer.
 
+`setup` is `nam-book-illustration-setup`, a root stage beside research after
+project-brief approval. It is selected for illustration or diagram projects;
+text-only creation omits it. Visual planning waits for architecture and the
+hash-bound `illustration-setup` decision. Mascot-free books still establish the
+hand-drawn visual language through a representative scene or diagram sample.
+
+Focused routes retain omitted node records in `route.parked_nodes`. These are
+history, not runnable nodes. Replanning restores completed nodes without losing
+their input invalidations; changes propagate through parked visual descendants
+as well as the active route. Specialists never edit parked records.
+
 Both publication nodes invoke `nam-book-publish`, but with different operations.
 `nam-book-publish-proof` is ungated and creates `review` artifacts.
 `nam-book-publish-release` depends on validation and requires `final-proof`; R3
 also requires `medical-expert-signoff`. Use exact node IDs for transitions.
 
 ## Parallel lanes
+
+After project-brief approval, illustration setup and research may run in
+parallel because they write disjoint slots. The user can approve visual
+identity without waiting for a drafted chapter.
 
 After approved architecture and evidence, assessment can run independently of
 chapter drafting. After an enriched draft and approved visual system, diagrams

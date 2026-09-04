@@ -21,6 +21,12 @@ Keep the normal reading direction of the active locale unless the content demand
 
 Use semantic palette roles such as neutral, process, evidence, caution, risk, and outcome. Repeat each role with a label, icon, border, line pattern, or shape. Test in grayscale; two fills that collapse to the same tone cannot carry different meanings alone.
 
+## Hand-drawn treatment
+
+Take the contour, shape language, restrained texture, and palette from the approved project setup. Slightly irregular non-semantic outlines and sparse paper-like marks can retain the hand-drawn character in editable SVG. Keep arrow direction, data coordinates, anatomy, thresholds, and reading order exact. Texture must not compete with small labels or imply extra data. A precise diagram may use a quieter hand-drawn treatment than a scene illustration; record that choice in its specification.
+
+Preserve live typeset labels and stable element IDs. The hand-drawn look does not require rasterizing the master or asking an image model to draw exact text. If a mascot is requested, use the selected project's approved identity rather than importing Nam by default.
+
 ## Text
 
 Typeset exact labels in `<text>` elements. Use system-safe or explicitly licensed fonts and record the fallback stack. Preserve live text in the master even if a derivative converts glyphs to outlines.
