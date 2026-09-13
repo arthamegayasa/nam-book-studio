@@ -1,5 +1,7 @@
 # Nam Book Studio
 
+[![Validate](https://github.com/arthamegayasa/nam-book-studio/actions/workflows/validate.yml/badge.svg?branch=main)](https://github.com/arthamegayasa/nam-book-studio/actions/workflows/validate.yml?query=branch%3Amain)
+
 ![Nam, the friendly Bali-starling page guide](assets/nam-icon.png)
 
 Nam Book Studio is an open, modular skill suite for creating complete books with Codex and other Agent Skills-compatible hosts. It covers the whole path from a rough idea to researched chapters, instructional features, original illustrations, assessments, bilingual editions, and production-ready files.
@@ -210,13 +212,14 @@ Stable IDs connect objectives, claims, sources, figures, callouts, questions, an
 
 ## Validate this repository
 
-The project uses Python's standard library only for structural checks:
+The checks below use Python's standard library only. Run them from the repository root; the [Validate workflow](.github/workflows/validate.yml) runs the same checks on pushes and pull requests with Python 3.12:
 
 ```bash
 python scripts/validate_repository.py
 python -m unittest discover -s tests -v
 python skills/asknam/scripts/test_state_tools.py
 python skills/asknam/scripts/validate_resources.py --require-mirrors
+python -m compileall -q scripts skills
 ```
 
 Each skill should also pass OpenAI's `quick_validate.py` from the built-in `skill-creator` skill. The plugin manifest should pass `validate_plugin.py` from the built-in `plugin-creator` skill.

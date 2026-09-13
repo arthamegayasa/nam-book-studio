@@ -20,13 +20,14 @@ Contributions should make a book workflow more reliable without turning a focuse
 
 ## Validation
 
-Run:
+Run these checks from the repository root. They match the [Validate workflow](.github/workflows/validate.yml), which uses Python 3.12 and requires no third-party Python packages:
 
 ```text
 python scripts/validate_repository.py
 python -m unittest discover -s tests -v
 python skills/asknam/scripts/test_state_tools.py
 python skills/asknam/scripts/validate_resources.py --require-mirrors
+python -m compileall -q scripts skills
 ```
 
 For visual changes, check the canonical character, print scale, grayscale legibility, caption, alt text, and provenance. For medical changes, include a fixture that demonstrates the correct blocking behavior for an unsupported `R3` claim.
