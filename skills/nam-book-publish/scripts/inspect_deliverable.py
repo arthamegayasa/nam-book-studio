@@ -18,17 +18,36 @@ import zipfile
 from pathlib import Path, PurePosixPath
 
 
-ACTIVE_XML = (b"<!DOCTYPE", b"<!ENTITY")
+# EPUB 3 content documents begin with the bare HTML5 doctype. Anything else that
+# declares a DOCTYPE (external identifiers, an internal subset) or an ENTITY stays
+# forbidden so the parser never resolves external or expanding content.
+BARE_HTML_DOCTYPE = re.compile(rb"<!DOCTYPE\s+html\s*>", re.IGNORECASE)
+DOCTYPE_DECLARATION = re.compile(rb"<!DOCTYPE[^>]*>", re.IGNORECASE)
 
 
 def local_name(tag: str) -> str:
     return tag.rsplit("}", 1)[-1]
 
 
-def parse_xml(payload: bytes, label: str, errors: list[str]) -> ET.Element | None:
+def forbidden_declaration(payload: bytes) -> str | None:
     upper = payload.upper()
-    if any(marker in upper for marker in ACTIVE_XML):
-        errors.append(f"{label} contains a forbidden DOCTYPE or ENTITY declaration")
+    if b"<!ENTITY" in upper:
+        return "ENTITY declaration"
+    if b"<!DOCTYPE" not in upper:
+        return None
+    declarations = DOCTYPE_DECLARATION.findall(payload)
+    if upper.count(b"<!DOCTYPE") != 1 or len(declarations) != 1:
+        return "multiple or malformed DOCTYPE declarations"
+    declaration = declarations[0]
+    if b"[" in declaration or not BARE_HTML_DOCTYPE.fullmatch(declaration):
+        return "DOCTYPE with external identifier or internal subset"
+    return None
+
+
+def parse_xml(payload: bytes, label: str, errors: list[str]) -> ET.Element | None:
+    reason = forbidden_declaration(payload)
+    if reason:
+        errors.append(f"{label} contains a forbidden {reason}")
         return None
     try:
         return ET.fromstring(payload)
