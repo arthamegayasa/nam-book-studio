@@ -127,6 +127,12 @@
       "uniqueItems": true,
       "items": { "type": "string" }
     },
+    "callout_ids": {
+      "description": "Stable callout IDs carried by a manuscript artifact. Entries registered before the callout contract omit this field; AskNam treats a missing value as empty.",
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "pattern": "^callout-ch[0-9]{2,}-[0-9]{2,}$" }
+    },
     "blockers": {
       "type": "array",
       "items": { "type": "string" }
@@ -179,6 +185,7 @@
           "figure_ids": { "type": "array", "items": { "type": "string" } },
           "item_ids": { "type": "array", "items": { "type": "string" } },
           "semantic_block_ids": { "type": "array", "items": { "type": "string" } },
+          "callout_ids": { "type": "array", "items": { "type": "string" } },
           "blockers": { "type": "array", "items": { "type": "string" } },
           "provenance": { "type": "object" },
           "registered_at": { "type": "string", "format": "date-time" }
