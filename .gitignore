@@ -11,3 +11,4 @@ dist/
 *.egg-info/
 tmp/
 output/
+.claude/worktrees/

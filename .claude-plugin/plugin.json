@@ -1,0 +1,20 @@
+{
+  "name": "nam-book-studio",
+  "version": "0.2.0",
+  "description": "A modular, evidence-aware skill suite for planning, writing, illustrating, assessing, localizing, and publishing books.",
+  "author": {
+    "name": "Artha Megayasa",
+    "url": "https://github.com/arthamegayasa"
+  },
+  "homepage": "https://github.com/arthamegayasa/nam-book-studio",
+  "repository": "https://github.com/arthamegayasa/nam-book-studio",
+  "license": "MIT",
+  "keywords": [
+    "books",
+    "authoring",
+    "education",
+    "illustration",
+    "assessment",
+    "publishing"
+  ]
+}

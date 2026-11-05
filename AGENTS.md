@@ -9,6 +9,7 @@ This repository packages a coordinated set of book-authoring skills. Keep the ru
 - `skills/asknam/references/profiles/` and `skills/asknam/references/schemas/` are the install-portable runtime sources; top-level `profiles/` and `schemas/` are exact publishing mirrors.
 - The project contract and schemas own artifact fields and state transitions.
 - Each specialist `SKILL.md` owns only its stage. Put branch-specific detail in that skill's `references/` folder.
+- `.codex-plugin/plugin.json` and `.claude-plugin/` (plugin and marketplace manifests) own host packaging. Both describe the same `skills/` directory and carry the same version string.
 - `scripts/validate_repository.py` defines structural repository checks.
 
 ## Invariants
@@ -17,6 +18,8 @@ This repository packages a coordinated set of book-authoring skills. Keep the ru
 - Preserve stable IDs for chapters, objectives, claims, sources, figures, callouts, and assessment items. A `callout_id` is type-neutral (`callout-ch03-02`): a callout keeps it through retyping, and a new callout takes the chapter's next unused number.
 - A callout is a Pandoc fenced div with the `.callout` class. Reflection prompts are unscored and have no key; quick checks keep their key in the assessment item bank. Placement tokens (`inline`, `side-column`, `band`, `full-page`, `opener`, `spread`) are one shared vocabulary for callouts, planned visuals, and the design spec.
 - Only AskNam updates global project state. Specialists return artifacts and a stage result.
+- Refer to a skill in prose by its bare backticked name (`nam-book-research`). The `$name` syntax belongs only to Codex-specific files (`agents/openai.yaml`, `.codex-plugin/plugin.json`) and the README's Codex examples; the validator rejects it elsewhere.
+- AskNam is explicit-only in every host: `disable-model-invocation: true` in its `SKILL.md` and `allow_implicit_invocation: false` in its `agents/openai.yaml`. Specialists stay model-invocable and declare `allow_implicit_invocation: true` explicitly.
 - Treat `friendly-explainer`, `textbook`, and `exam-prep` as book modes. Keep content risk separate from mode.
 - Never turn a failed lookup into a successful evidence status. A DOI resolving does not prove that a source supports a claim.
 - A medical `R3` claim remains blocked until its authoritative evidence and required expert review are recorded.

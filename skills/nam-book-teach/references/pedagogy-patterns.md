@@ -31,11 +31,11 @@ Describe the tempting belief fairly, show the observation it cannot explain, rep
 
 ### Retrieval
 
-Ask the learner to recall, discriminate, sequence, calculate, explain, or apply. Match difficulty to the objective and provide feedback after an honest attempt opportunity. Scored banks and full distractor rationales belong to `$nam-book-assess`.
+Ask the learner to recall, discriminate, sequence, calculate, explain, or apply. Match difficulty to the objective and provide feedback after an honest attempt opportunity. Scored banks and full distractor rationales belong to `nam-book-assess`.
 
 ### Visual request
 
-Request a visual only when spatial arrangement, sequence, comparison, hierarchy, mechanism, or a memorable conceptual metaphor is easier to learn visually. Provide the objective, message, required labels, evidence IDs, caption intent, and alt-text intent to `$nam-book-visuals`.
+Request a visual only when spatial arrangement, sequence, comparison, hierarchy, mechanism, or a memorable conceptual metaphor is easier to learn visually. Provide the objective, message, required labels, evidence IDs, caption intent, and alt-text intent to `nam-book-visuals`.
 
 ## Mode overlays
 

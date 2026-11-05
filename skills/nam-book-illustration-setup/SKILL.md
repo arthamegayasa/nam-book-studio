@@ -44,9 +44,13 @@ separate from the payload.
    than a bypass of this setup's hand-drawn contract.
 4. **Calibrate before batching.** Produce or select a representative sample:
    a mascot pose/action sheet when a character exists, or a representative scene
-   or diagram when it does not. Use the available image-generation/editing skill
-   for raster work and editable drawing tools for exact diagrams. Inspect the
-   actual sample at intended placement size against the contract. An existing,
+   or diagram when it does not. Use the host's raster image tool (a built-in
+   image-generation capability or an installed image-generation skill) for
+   raster work and editable drawing tools for exact diagrams. Record that
+   tool's name in `production.raster_image_tool` so chapter illustration uses
+   the same tool; when no raster tool is available, leave it `null`, keep the
+   draft, and return `blocked` rather than describing an image nobody rendered.
+   Inspect the actual sample at intended placement size against the contract. An existing,
    rights-cleared user reference can serve as calibration if it demonstrates the
    chosen direction; a text prompt alone cannot. Before research is complete,
    calibrate neutral identity, gesture, or simple object/line examples rather
@@ -77,4 +81,4 @@ matches the design.
 
 Only AskNam mutates global state or approval records. A changed setup triggers a
 visual dependency review, preserving earlier assets and approvals as history.
-Once approved, hand off to `$nam-book-design` for the page design and icon set, and to `$nam-book-visuals` for chapter-level figure planning.
+Once approved, hand off to `nam-book-design` for the page design and icon set, and to `nam-book-visuals` for chapter-level figure planning.

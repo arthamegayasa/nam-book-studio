@@ -38,7 +38,7 @@ Teach a compact mental model before compressing it into high-yield review.
 - Reserve Exam Trap and High-Yield labels for genuinely discriminating points.
 - Keep the answer and rationale out of the immediate question context unless the delivery format is formative.
 
-Possible components include mechanism, comparison table, algorithm, worked case, rapid review, and practice-set link, plus callouts from the catalog (`must-know`, `high-yield`, `pearl`, `exam-trap`, `memory-aid`, `case`, `quick-check`). Item writing belongs to `$nam-book-assess`.
+Possible components include mechanism, comparison table, algorithm, worked case, rapid review, and practice-set link, plus callouts from the catalog (`must-know`, `high-yield`, `pearl`, `exam-trap`, `memory-aid`, `case`, `quick-check`). Item writing belongs to `nam-book-assess`.
 
 ## Shared drafting checks
 

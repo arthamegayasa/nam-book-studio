@@ -11,7 +11,7 @@ Turn the approved book architecture into a coherent visual teaching system. Ever
 
 Read the project manifest, book architecture, active profile and locales, voice profile, evidence ledger, production targets, illustration setup, character bible, and existing visual assets. Read the teaching plan and completed chapter passages when available; planning can start from the approved architecture without them, and content details must be checked again before production. Preserve all `project_id`, `chapter_id`, `objective_id`, `claim_id`, `source_id`, and `figure_id` values.
 
-The architecture must define chapter objectives and planned visuals. The current `illustration-setup` approval supplies the project's art direction and mascot choice, including an explicit mascot-free choice. If it is missing or the brief requires a different identity, route to `$nam-book-illustration-setup` rather than silently creating a new bible. Record unresolved content, rights, cultural, or production questions as blockers instead of resolving them through invented visual detail.
+The architecture must define chapter objectives and planned visuals. The current `illustration-setup` approval supplies the project's art direction and mascot choice, including an explicit mascot-free choice. If it is missing or the brief requires a different identity, route to `nam-book-illustration-setup` rather than silently creating a new bible. Record unresolved content, rights, cultural, or production questions as blockers instead of resolving them through invented visual detail.
 
 ## Plan the system
 
@@ -21,7 +21,7 @@ The architecture must define chapter objectives and planned visuals. The current
 4. Apply the approved visual tokens to figure scale, label density, page placement, color-independent meaning, and print/digital variants. Keep exact relationships and labels editable even when their surrounding linework has a hand-drawn character.
 5. Use the selected project identity only when it performs the learning job. In mascot-free mode, plan meaningful scenes, objects, or diagrams without inserting Nam. Report a need for new poses, proportions, or cultural treatment to the setup stage if it changes the approved identity; do not silently broaden its fixed anchors.
 6. Audit ownership, licenses, permissions, cultural references, model/tool provenance, and required notices for every source asset. A missing right or uncertain sacred or cultural use blocks that asset branch.
-7. Route approved raster briefs to `$nam-book-illustrate` and exact relational briefs to `$nam-book-diagram`.
+7. Route approved raster briefs to `nam-book-illustrate` and exact relational briefs to `nam-book-diagram`.
 
 ## Outputs
 
