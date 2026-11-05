@@ -27,7 +27,7 @@ missing -> draft -> review -> approved
 ## Routing loop
 
 1. Locate or initialize `.nam-book/project.json`.
-2. Classify the supported route intent: start, resume, revise, audit, setup-illustration, illustrate, localize, or publish.
+2. Classify the supported route intent: start, resume, revise, audit, setup-illustration, design, illustrate, localize, or publish.
 3. Resolve the target mode, locale, audience, content risk, and milestone.
 4. Inspect required artifacts and select the smallest sufficient skill set.
 5. Ask only for a decision whose alternatives materially change the book.
@@ -42,6 +42,10 @@ missing -> draft -> review -> approved
 `nam-book-visuals` consumes this identity and style contract; it owns the later objective-linked figure inventory, not mascot creation. `nam-book-illustrate` follows the selected project's anchors, and `nam-book-diagram` applies the shared style while keeping exact geometry and labels editable. The `illustration-setup` human approval binds both setup artifacts before visual production. A changed style or identity reopens affected visual and integration work without requiring unrelated research or drafting to restart.
 
 Existing Nam assets remain immutable calibration sources for the Nam preset. Legacy project character bibles can be adopted without changing their bytes or removing their approval history. Adoption does not silently approve new art direction: the new setup still needs its own review. See [illustration-setup.md](illustration-setup.md) for the user workflow and the AskNam state protocol for runtime details.
+
+## Page design before typesetting
+
+`nam-book-design` owns the project-level `design_spec` and the generated `design_assets` (CSS, Pandoc filter, reference DOCX, icon set). It starts from a mode preset, reads the approved illustration setup when the project has one so the icons follow the art direction, and renders a bundled sample chapter through the real publish build path into a `design_proof` bundle. The hash-bound `design` approval binds the spec and the assets and requires a fresh, passing proof rendered from exactly those bytes; `nam-book-publish-proof` depends on the design stage and that approval. Art identity stays with illustration setup: a design change never reopens the illustration approval, while a changed setup expires the design through the spec's registered input.
 
 ## Stable identifiers
 

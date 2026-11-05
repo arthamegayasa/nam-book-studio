@@ -12,11 +12,12 @@ The repository and runtime instructions are English. Book projects currently sup
 
 ## What makes this different
 
-- One explicit orchestrator and fourteen independently invokable specialists inside the installed suite.
+- One explicit orchestrator and fifteen independently invokable specialists inside the installed suite.
 - Three genuinely different modes: `friendly-explainer`, `textbook`, and `exam-prep`.
 - Stable artifact IDs, saved state, approvals, and dependency-aware staleness.
 - Evidence ledgers that distinguish discovery, metadata checks, claim support, and expert review.
 - Upfront, project-specific hand-drawn art setup: custom mascot, supplied identity, original Nam preset, or no mascot.
+- A project-level design spec (trim, grid, typography, callout styles, icons) approved on a rendered sample chapter before any chapter is typeset, then consumed by publish.
 - Separate raster-illustration and editable-diagram workflows with an approved shared visual direction.
 - Objective-linked callouts, visuals, examples, and assessment items.
 - English-Indonesian localization with semantic parity checks.
@@ -36,13 +37,14 @@ The `friendly-explainer` mode uses approachable explanations, visual anchors, ti
 | `$nam-book-teach` | Add purposeful explanations, examples, callouts, recaps, and misconception repair |
 | `$nam-book-assess` | Build blueprints, original questions, rationales, and item-quality reviews |
 | `$nam-book-illustration-setup` | Set project art direction, inspect references, define a mascot or mascot-free system, and prepare calibration for approval |
+| `$nam-book-design` | Define the page design as a design spec with generated stylesheet assets and prove it on a rendered sample chapter |
 | `$nam-book-visuals` | Plan visual coverage and choose illustration, diagram, table, or data graphic |
 | `$nam-book-illustrate` | Create hand-drawn raster illustrations using the project's approved style and selected identity |
 | `$nam-book-diagram` | Produce editable, accessible SVG mechanisms, algorithms, and comparisons |
 | `$nam-book-voice` | Build an authorized voice profile or audit drift; writing and editing apply the profile |
 | `$nam-book-edit` | Perform developmental, line, copy, consistency, and integration edits |
 | `$nam-book-localize` | Create aligned locale editions and verify semantic parity |
-| `$nam-book-publish` | Design and build DOCX, EPUB, screen PDF, and print PDF deliverables |
+| `$nam-book-publish` | Build DOCX, EPUB, screen PDF, and print PDF deliverables from the approved design |
 | `$nam-book-validate` | Run independent quality gates and issue a release decision |
 
 ## Workflow
@@ -56,8 +58,9 @@ Research -> Architecture -> Voice     Illustration setup
                 v             v           |
            Assessment       Draft     Human art approval
                               |           |
-                           Teaching       |
-                              |           |
+                           Teaching       +---> Book design
+                              |           |     spec, assets, sample chapter
+                              |           |     Human design approval
                               +---> Visual plan <--- Architecture + Voice
                                        |
                               Illustration / Diagram
@@ -66,7 +69,7 @@ Teaching + Assessment + Visuals -> Voice-aware edit
                                        |
                               Optional localization
                                        |
-                                  Proof build
+                        Proof build (approved design)
                                        |
                                Release validation
                                        |
@@ -75,7 +78,7 @@ Teaching + Assessment + Visuals -> Voice-aware edit
                                      Release
 ```
 
-This is a workflow overview; the [routing contract](skills/asknam/references/routing.md) defines the exact dependency graph. Illustration setup can start alongside research once the project brief is approved. It does not wait for chapters to be drafted. AskNam can route a focused request directly to one specialist, resume from an approved stage, or rerun only artifacts made stale by an upstream change. Projects without illustrations or diagrams omit the visual lane.
+This is a workflow overview; the [routing contract](skills/asknam/references/routing.md) defines the exact dependency graph. Illustration setup can start alongside research once the project brief is approved. It does not wait for chapters to be drafted. Book design follows it (or runs on its own for text-only books) and renders a bundled sample chapter through the real build path, so the author approves the look before chapters are typeset; publish proofs then require that approval. AskNam can route a focused request directly to one specialist, resume from an approved stage, or rerun only artifacts made stale by an upstream change. Projects without illustrations or diagrams omit the visual lane.
 
 ## Install
 
@@ -87,7 +90,7 @@ Ask the built-in skill installer to install every skill path from this repositor
 Use $skill-installer to install these paths from arthamegayasa/nam-book-studio:
 skills/asknam, skills/nam-book-architect, skills/nam-book-research,
 skills/nam-book-write, skills/nam-book-teach, skills/nam-book-assess,
-skills/nam-book-illustration-setup, skills/nam-book-visuals,
+skills/nam-book-illustration-setup, skills/nam-book-design, skills/nam-book-visuals,
 skills/nam-book-illustrate, skills/nam-book-diagram,
 skills/nam-book-voice, skills/nam-book-edit, skills/nam-book-localize,
 skills/nam-book-publish, and skills/nam-book-validate.
@@ -189,6 +192,10 @@ A project initialized by AskNam stores its control plane at `.nam-book/project.j
     |-- teaching-plan.yaml
     |-- assessment-blueprint.yaml
     |-- items.<locale>.yaml
+    |-- design/
+    |   |-- design-spec.json
+    |   |-- assets/            # print.css, epub.css, callouts.lua, reference.docx, icons/
+    |   `-- proofs/<artifact_id>/   # rendered sample chapter, report.json, build-manifest.json
     |-- visuals/
     |   |-- illustration-setup.json
     |   |-- calibration/<artifact_id>/
@@ -209,6 +216,10 @@ A project initialized by AskNam stores its control plane at `.nam-book/project.j
 ```
 
 Stable IDs connect objectives, claims, sources, figures, callouts, questions, and translations. A changed dependency marks affected registry entries `stale`. AskNam snapshots every registered artifact revision under `.nam-book/history/`; normal project backups or Git remain recommended for disaster recovery.
+
+## Render path
+
+Publishing and the design sample-chapter proof share one build path in `skills/nam-book-publish/scripts/build_deliverables.py`: Pandoc converts the Markdown manuscript with the generated `callouts.lua` filter, `reference.docx`, and CSS; PDF is printed from the standalone HTML by a Chromium-family browser (Google Chrome, Chromium, or Microsoft Edge) or converted from the DOCX by LibreOffice. Pandoc 3.x is the one required external tool; a browser or LibreOffice is needed only for PDF. Every tool, version, command, and output hash is recorded in `build-manifest.json`, and a missing tool is reported instead of being replaced by a placeholder file. The repository's render tests run when Pandoc and a browser are installed and skip otherwise.
 
 ## Validate this repository
 

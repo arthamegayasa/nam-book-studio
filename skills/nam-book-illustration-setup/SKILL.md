@@ -77,4 +77,4 @@ matches the design.
 
 Only AskNam mutates global state or approval records. A changed setup triggers a
 visual dependency review, preserving earlier assets and approvals as history.
-Once approved, hand off to `$nam-book-visuals` for chapter-level figure planning.
+Once approved, hand off to `$nam-book-design` for the page design and icon set, and to `$nam-book-visuals` for chapter-level figure planning.

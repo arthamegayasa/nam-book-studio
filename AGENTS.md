@@ -23,6 +23,8 @@ This repository packages a coordinated set of book-authoring skills. Keep the ru
 - Keep Nam original. Do not add third-party mascot assets, imitate a named character, or add sacred Balinese symbols as decoration.
 - For the Nam preset, preserve the approved face design: small round charcoal eyes with tiny white catchlights and no blue eye markings. Other mascots follow their project's approved anchors, not Nam's anatomy or palette.
 - Illustration setup owns project art direction and character identity; visual planning consumes them. Keep hand-drawn treatment by default, including mascot-free projects, and require hash-bound setup approval before visual production.
+- `nam-book-design` owns page design: the `design_spec` and generated `design_assets` that publish consumes. The `design` approval binds both and requires a fresh, passing sample-chapter proof rendered through the real build path (`skills/nam-book-publish/scripts/build_deliverables.py`). A design change never reopens illustration approval; a setup change expires the design through its registered input.
+- Rendering reports what actually ran: tool names, versions, commands, and output hashes live in `build-manifest.json`, and a missing tool is a blocker rather than a placeholder file.
 - Preserve approved work when dependencies change. Mark downstream artifacts stale rather than deleting them.
 - Keep every specialist's shared-schema links resolvable from a normal sibling-skill installation.
 

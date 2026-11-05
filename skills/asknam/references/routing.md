@@ -13,6 +13,7 @@ one project uses only the smallest sufficient subset.
 | `revise` | Edit → proof → validate → release | Research and invalidated descendants when risk or changed inputs require them |
 | `audit` | Validate | Research for medical or R2/R3 evidence |
 | `setup-illustration` | Project illustration setup only | Available even with visual feature switches off; existing work is parked |
+| `design` | Book design spec and its sample-chapter proof | Adds illustration setup first when the project has visuals; existing work is parked |
 | `illustrate` | Illustration setup → visual planning → requested media → validate | Illustration and diagram lanes follow feature switches |
 | `localize` | Localize → proof → validate → release | Research when high-risk meaning changes |
 | `publish` | Proof → validate → release | Research when medical evidence is stale |
@@ -42,10 +43,10 @@ another publisher's text, character, page design, or trade dress.
 research → architecture → voice → writing → teaching ─┬→ diagrams ───┐
           architecture + research ───────→ assessment ─┤              │
 setup + architecture + voice ────────────→ visuals ────┴→ illustration│
-                                                                     ↓
+setup ──→ design ──→ design proof ──→ (design approval)              ↓
                                                                    editing
                                                                      ↓
-                                         optional localization → proof build
+                   optional localization + approved design → proof build
                                                                      ↓
                                                                  validation
                                                                      ↓
@@ -55,6 +56,16 @@ setup + architecture + voice ────────────→ visuals ─
 Only selected nodes appear in the compiled DAG. Dependencies on omitted nodes
 must already be satisfied by fresh registered artifacts; otherwise replan to
 include the producer.
+
+`design` is `nam-book-design`, selected by every profile. It depends on
+`nam-book-illustration-setup` when that stage is in the route (the icon set
+follows the approved art direction) and runs as a root stage for text-only
+books. Its second node, `nam-book-design-proof`, renders the bundled sample
+chapter through the real build path; the hash-bound `design` approval binds
+`design_spec` and `design_assets` and requires a fresh, passing proof.
+`nam-book-publish-proof` depends on design and requires that approval. A
+manifest created before the design stage existed keeps publishing ungated
+until a `start`, `resume`, or `design` route adds the `design` record.
 
 `setup` is `nam-book-illustration-setup`, a root stage beside research after
 project-brief approval. It is selected for illustration or diagram projects;

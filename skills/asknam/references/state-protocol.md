@@ -89,6 +89,16 @@ Approval basis hashes make decisions expire when the reviewed bytes change.
 Project-brief approval may have no artifact basis because it approves the
 manifest fields themselves.
 
+For `design`, complete `nam-book-design` and `nam-book-design-proof`, then
+approve with `--basis design-spec --basis design-assets` (the actual IDs). The
+helper checks that the spec's `profile` matches the manifest, that both basis
+artifacts are fresh and still match their bytes, and that a fresh `design_proof`
+registered with `--operation proof --status review` names those exact spec and
+asset revisions as inputs, completed its node, and carries a `report.json` with
+`status: pass` covering every requested deliverable except Markdown. Changing
+the spec, the assets, or the illustration setup they were built from expires
+the decision and stales the proof and publication builds.
+
 For `illustration-setup`, complete the setup node first, then approve with both
 `--basis illustration-setup` and `--basis character-bible` (use the actual IDs).
 The helper inspects the real setup JSON: `mascot_mode` is `custom`, `supplied`,
