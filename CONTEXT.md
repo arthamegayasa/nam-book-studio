@@ -79,5 +79,9 @@ _Avoid_: export, conversion script
 ## Layout vocabulary
 
 **Placement**:
-A hint about where an element's body sits on a fixed page: `inline`, `side-column`, `band`, `full-page`, `opener`, or `spread`. Callouts use the first five; planned visuals may use all six. Reflowable formats degrade it; the design spec owns the treatment.
+A hint about where an element's body sits on a fixed page: `inline`, `side-column`, `band`, `full-page`, `opener`, or `spread`. Callouts use the first five; planned visuals carry it from the architecture and may use all six. Absent means the design spec's default. Reflowable formats degrade it; the design spec owns the treatment, and a refinement by the visual brief or an override by publish is reported, never silent.
 _Avoid_: position, layout slot, margin, float
+
+**Visual structure**:
+The reading rule a planned visual follows: `process`, `hierarchy`, `comparison`, `timeline`, `cycle`, `spatial`, `mechanism`, `decision-path`, or `scene`. Required for diagrams and hybrids. `mechanism` covers pathophysiology and pathogenesis, `decision-path` covers algorithms, `spatial` covers anatomy, `scene` marks an expressive illustration.
+_Avoid_: diagram type, chart type, figure category, layout (that is placement)

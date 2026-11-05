@@ -30,7 +30,9 @@ require evidence IDs before declaring the architecture ready.
 5. Plan material claims with risk levels and required evidence IDs. Keep facts,
    assumptions, and interpretations distinguishable.
 6. Plan each visual by its learning job, not decoration. Assign stable figure
-   IDs and choose illustration, diagram, table, or no visual.
+   IDs; choose the kind (illustration, diagram, table, data graphic,
+   photograph, hybrid, or no visual); name the `structure` for every diagram
+   and hybrid; add a `placement` hint when the page position matters.
 7. Plan assessment coverage against objective IDs; exam-prep requires blueprint
    coverage and item targets.
 8. Check cumulative load, duplication, missing prerequisites, and chapter-length

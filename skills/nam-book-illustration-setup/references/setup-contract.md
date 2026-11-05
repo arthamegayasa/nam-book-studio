@@ -17,10 +17,10 @@ requesting approval. Preserve these fields across revisions:
 | `brief` | Record the reader, subject, tone, intended placements, and the visual promise. Retain the approved brief's artifact/hash when one exists; a manifest-bound brief can be identified by its approval ID. |
 | `mascot_mode` | Exactly `custom`, `supplied`, `nam`, or `none`. |
 | `hand_drawn` | `true` for this workflow. Palette, contour, and texture adapt per project while retaining a hand-drawn character. A non-hand-drawn request requires a revised workflow, not a bypass flag. |
-| `visual_tokens` | Observable contour, shape language, palette roles/values, texture, shading, backgrounds, and typography/label treatment. State where line variation is allowed and where precision must be retained. |
+| `visual_tokens` | Observable contour, shape language, palette roles/values, texture, shading, backgrounds, and typography/label treatment. State where line variation is allowed and where precision must be retained. `palette` lists `{ "role": "...", "value": "#rrggbb" }` entries; the roles diagrams read are `ink`, `paper`, `accent`, `muted`, `neutral`, `process`, and `outcome`, and bare hex values are read in that order (`apply_tokens.py` in the diagram skill applies them). |
 | `references` | Image IDs, source/path, inspected hash, reference role, permission basis, review status, traits to retain, and traits to exclude. |
 | `calibration` | `status` is `pending`, `passed`, or `failed`; `sample_artifact_ids` names registered assets. `checks` identifies actual observations/reviewer and result; `limitations` identifies untested placements or variants. |
-| `production` | Intended raster/vector/hybrid outputs, trim/live area if known, label strategy, color-independent meaning, and consistency checks. Unknown printer parameters remain unknown. |
+| `production` | Intended raster/vector/hybrid outputs, the `placements` the project will use (`inline`, `side-column`, `band`, `full-page`, `opener`, `spread`: the shared vocabulary of callouts, planned visuals, and the design spec), trim/live area if known, label strategy, color-independent meaning, and consistency checks. Unknown printer parameters remain unknown. |
 | `decisions`, `open_questions` | User choices, proposed assumptions, their rationale, and unresolved prerequisites. |
 | `adoption` | When reusing a legacy bible: `character_bible_artifact_id`, `sha256`, `approval_ids`, and `reason`; otherwise `null`. Retain its recorded migration provenance. |
 

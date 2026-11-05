@@ -81,9 +81,16 @@
               "required": ["figure_id", "kind", "learning_job"],
               "properties": {
                 "figure_id": { "type": "string" },
-                "kind": { "enum": ["illustration", "diagram", "table", "other"] },
+                "kind": { "enum": ["illustration", "diagram", "table", "data-graphic", "photograph", "hybrid", "other"] },
+                "structure": { "enum": ["process", "hierarchy", "comparison", "timeline", "cycle", "spatial", "mechanism", "decision-path", "scene"] },
+                "placement": { "enum": ["inline", "side-column", "band", "full-page", "opener", "spread"] },
                 "learning_job": { "type": "string" }
-              }
+              },
+              "if": {
+                "required": ["kind"],
+                "properties": { "kind": { "enum": ["diagram", "hybrid"] } }
+              },
+              "then": { "required": ["structure"] }
             }
           },
           "planned_assessments": {

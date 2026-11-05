@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import contextlib
 import importlib.util
 import hashlib
+import io
 import json
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -15,6 +18,12 @@ assert SPEC and SPEC.loader
 VALIDATOR = importlib.util.module_from_spec(SPEC)
 sys.modules[SPEC.name] = VALIDATOR
 SPEC.loader.exec_module(VALIDATOR)
+
+CHECKS_SPEC = importlib.util.spec_from_file_location("run_checks", ROOT / "scripts" / "run_checks.py")
+assert CHECKS_SPEC and CHECKS_SPEC.loader
+RUN_CHECKS = importlib.util.module_from_spec(CHECKS_SPEC)
+sys.modules[CHECKS_SPEC.name] = RUN_CHECKS
+CHECKS_SPEC.loader.exec_module(RUN_CHECKS)
 
 
 class RepositoryTests(unittest.TestCase):
@@ -30,6 +39,52 @@ class RepositoryTests(unittest.TestCase):
             VALIDATOR.EXPECTED_SKILLS,
             {path.name for path in (ROOT / "skills").iterdir() if path.is_dir()},
         )
+
+    def test_markdown_scan_skips_ignored_and_scratch_directories(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            for relative in (
+                "tmp/x.md",
+                ".scratch/y.md",
+                "docs/z.md",
+                "skills/a/SKILL.md",
+                "output/o.md",
+                "build/b.md",
+                "dist/d.md",
+                ".git/g.md",
+                "skills/__pycache__/p.md",
+                "skills/a/tmp/nested.md",
+            ):
+                path = root / relative
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text("# x\n", encoding="utf-8")
+            found = sorted(path.relative_to(root).as_posix() for path in VALIDATOR.markdown_files(root))
+        self.assertEqual(["docs/z.md", "skills/a/SKILL.md"], found)
+
+    def test_run_checks_lists_five_existing_gates(self) -> None:
+        self.assertEqual(5, len(RUN_CHECKS.GATES))
+        for gate in RUN_CHECKS.GATES:
+            with self.subTest(gate=gate.name):
+                self.assertTrue(gate.name)
+                script = next((arg for arg in gate.args if arg.endswith(".py")), None)
+                if script is not None:
+                    self.assertTrue((ROOT / script).is_file(), script)
+                else:
+                    self.assertIn("-m", gate.args)
+        self.assertEqual(
+            ["validate_repository", "tests", "state_tools", "resources", "compileall"],
+            [gate.name for gate in RUN_CHECKS.GATES],
+        )
+
+    def test_run_checks_list_mode_prints_commands_without_running(self) -> None:
+        buffer = io.StringIO()
+        with contextlib.redirect_stdout(buffer):
+            code = RUN_CHECKS.main(["--list"])
+        self.assertEqual(0, code)
+        output = buffer.getvalue()
+        self.assertIn("scripts/validate_repository.py", output)
+        self.assertIn("compileall", output)
+        self.assertEqual(5, len([line for line in output.splitlines() if line.strip()]))
 
     def test_final_nam_icon_has_alpha(self) -> None:
         self.assertIn(VALIDATOR.png_color_type(ROOT / "assets" / "nam-icon.png"), {4, 6})

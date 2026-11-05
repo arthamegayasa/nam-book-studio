@@ -37,7 +37,7 @@ Important limitations shaped this implementation:
 - [`fetch_evidence_snippet.py`](https://github.com/lensetek/Book-Author-Agent-Skills/blob/0e8770a18c096e58ce81b6a31185e5f1dfbffbaf/.codex/skills/scripts/fetch_evidence_snippet.py#L46-L72) queries only OpenAlex even though surrounding documentation names several providers. On a failed fetch, it writes a failure message but still records `VALIDATED_FACTUAL_GROUNDING` and `SUCCESS`.
 - [`validate_references.py`](https://github.com/lensetek/Book-Author-Agent-Skills/blob/0e8770a18c096e58ce81b6a31185e5f1dfbffbaf/.codex/skills/scripts/validate_references.py#L42-L84) resolves DOI metadata; it does not establish that a source supports a manuscript claim.
 
-Nam therefore uses explicit `unverified`, `unsupported`, `conflicting`, and `fetch_failed` states. A network failure cannot become validated evidence, and reference metadata cannot satisfy a claim-support gate by itself.
+Nam therefore keeps the claim's `evidence_status` (`candidate`, `verified`, `conflicting`, `missing`) separate from each source lookup's `passage_status` (`not-checked`, `found`, `not-found`, `inaccessible`) and `claim_support` (`unknown`, `supports`, `partially-supports`, `contradicts`, `not-applicable`), as defined in the evidence-ledger schema. A network failure records `inaccessible` and leaves the claim `candidate`; it cannot become `verified`, and reference metadata cannot satisfy a claim-support gate by itself.
 
 ## Assessment
 
