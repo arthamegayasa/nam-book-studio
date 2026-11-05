@@ -9,7 +9,7 @@ Strengthen learning without changing the chapter's factual meaning or turning it
 
 ## Inputs and gate
 
-Read the approved chapter specification, current draft, selected mode profile, active locale, objective map, evidence ledger, any approved terminology guidance, and any visual plan. Preserve every `chapter_id`, `objective_id`, `claim_id`, `source_id`, and semantic block ID.
+Read the approved chapter specification, current draft, selected mode profile, active locale, objective map, evidence ledger, any approved terminology guidance, any visual plan, and the [callout catalog](../asknam/references/callout-catalog.json). Preserve every `chapter_id`, `objective_id`, `claim_id`, `source_id`, `callout_id`, and semantic block ID.
 
 The draft must already be factually usable. Route missing evidence to `$nam-book-research` and structural scope changes to `$nam-book-architect`; pedagogical polish cannot repair either problem.
 
@@ -18,9 +18,10 @@ The draft must already be factually usable. Route missing evidence to `$nam-book
 1. Diagnose learner friction: missing prerequisites, abstraction jumps, high intrinsic load, likely misconceptions, weak transfer, or long stretches without retrieval.
 2. Create a teaching plan. Give each proposed enhancement a stable ID, source block, objective ID, purpose, mode fit, and insertion point.
 3. Select the smallest pattern that addresses each problem. Read [references/pedagogy-patterns.md](references/pedagogy-patterns.md) and use only the active mode's branch.
-4. Integrate the selected enhancements into an enriched draft while preserving claim meaning, citations, and semantic block IDs. New facts require evidence; new factual claims are not an instructional device.
+4. Integrate the selected enhancements into an enriched draft while preserving claim meaning, citations, and semantic block IDs. Write every callout, reflection prompt, and quick check in the form defined by [references/callout-contract.md](references/callout-contract.md); the catalog decides which types the active mode allows. New facts require evidence; new factual claims are not an instructional device.
 5. Coordinate visual opportunities through `figure_id` requests for `$nam-book-visuals`. Coordinate scored questions through `$nam-book-assess`.
 6. Re-read the chapter as a learner. Remove redundant callouts, decorative mnemonics, repeated summaries, and analogies whose limitations outweigh their value.
+7. Run `scripts/inspect_callouts.py` on the enriched draft with the project's mode, locale, chapter, density, and architecture. Fix every error; weigh every warning. Pass its `--print-ids` output to AskNam for registration.
 
 ## Invariants
 
@@ -33,6 +34,6 @@ The draft must already be factually usable. Route missing evidence to `$nam-book
 
 ## Outputs
 
-Write a teaching plan and enriched draft to artifact-registry paths. Validate registry entries against [book-artifact.schema.json](../asknam/references/schemas/book-artifact.schema.json) and record input artifact ID/hash pairs, locale, enhancement IDs, affected block/objective IDs, requested visuals or assessments, removed proposals, status, and blockers. Do not mutate global state or mark the chapter approved.
+Write a teaching plan and enriched draft to artifact-registry paths. Validate registry entries against [book-artifact.schema.json](../asknam/references/schemas/book-artifact.schema.json) and record input artifact ID/hash pairs, locale, callout IDs, affected block/objective IDs, requested visuals or assessments, removed proposals, status, and blockers. Do not mutate global state or mark the chapter approved.
 
 The work is complete when every inserted element has an instructional purpose, all source IDs and claim meanings survive, the callout load remains readable, and outputs satisfy the project contract.

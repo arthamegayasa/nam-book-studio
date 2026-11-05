@@ -20,6 +20,7 @@ A chapter is ready to draft when its `chapter_id`, learning `objective_id` value
 3. Follow the selected mode without treating the mode outline as a mandatory heading list. Read [references/drafting-by-mode.md](references/drafting-by-mode.md) for the active mode.
 4. Apply the approved voice profile. If the voice is missing or contradictory, use `$nam-book-voice` before broad stylistic work.
 5. Use examples and cases to clarify the objective. Mark synthetic or composite cases as such; never introduce identifiable personal information.
+   Content-bearing callouts that belong in the draft (a safety `warning`, a `definition`) use the syntax in the teach skill's [callout contract](../nam-book-teach/references/callout-contract.md); pedagogical callouts are added later by `$nam-book-teach`.
 6. Record unsupported, disputed, or out-of-scope claims in the draft's machine-readable metadata and the stage result, then route them to `$nam-book-research`.
 7. Check objective coverage, internal consistency, citation attachment, terminology, cross-references, and reading level before handing off.
 

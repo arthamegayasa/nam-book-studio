@@ -22,7 +22,7 @@ Locale formatting may change separators, date order, or typographic spacing; it 
 
 ## Teaching and assessment objects
 
-Localize the function of a callout, not merely its label. Re-test mnemonics, analogies, humor, and cultural examples; replace them only when the same objective and evidence remain intact, and document the adaptation.
+A callout keeps its `callout_id`, type, and attributes across locales; its label is supplied by the [callout catalog](../../asknam/references/callout-catalog.json) for the target locale, so translate only the body and any `title`. Localize the function of the callout, not merely its wording. Re-test mnemonics, analogies, humor, and cultural examples; replace them only when the same objective and evidence remain intact, and document the adaptation.
 
 For assessments, check that grammar does not reveal the key, option lengths remain balanced, negatives remain conspicuous, and every distractor expresses the same misconception after translation. A translated item can be grammatically accurate yet invalid.
 

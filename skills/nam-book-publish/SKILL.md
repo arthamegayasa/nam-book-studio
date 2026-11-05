@@ -23,7 +23,7 @@ A proof build requires no known content, evidence, safety, or rights blocker in 
 ## Produce
 
 1. Create a build manifest containing input artifact IDs and hashes, locale, tool names and versions, deterministic options where available, output targets, and known nondeterministic fields.
-2. Prepare one canonical semantic source and map its headings, captions, callouts, references, equations, alt text, links, and page-break intent into each requested format.
+2. Prepare one canonical semantic source and map its headings, captions, callouts, references, equations, alt text, links, and page-break intent into each requested format. Callouts arrive as typed fenced divs per the [callout contract](../nam-book-teach/references/callout-contract.md); style them by type and placement, with every type resolved from the catalog, and degrade `side-column` and `band` to inline flow in reflowable formats.
 3. Read only the requested format guidance: [DOCX](references/docx-production.md), [EPUB](references/epub-production.md), or [PDF](references/pdf-production.md). Use the environment's supported document or PDF tooling and record the actual path taken.
 4. Build into a new staging directory. Preserve prior proofs and release files; a rebuild receives a new revision and hashes.
 5. Run `scripts/inspect_deliverable.py` for structural checks, then perform the render-based and format-specific checks in [references/release-preflight.md](references/release-preflight.md). Structural inspection alone never proves visual correctness, PDF conformance, accessibility, or medical accuracy.

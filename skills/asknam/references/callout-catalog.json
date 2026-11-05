@@ -1,0 +1,193 @@
+{
+  "$schema": "schemas/callout-catalog.schema.json",
+  "schema_version": "1.0.0",
+  "catalog_version": "1.0.0",
+  "id_pattern": "^callout-ch[0-9]{2,}-[0-9]{2,}$",
+  "placements": ["inline", "side-column", "band", "full-page", "opener"],
+  "reveal_rules": ["none", "inline", "chapter-end", "book-end"],
+  "density_minimum_words_per_callout": { "high": 250, "medium": 400, "low": 700 },
+  "types": [
+    {
+      "type_id": "big-idea",
+      "labels": { "en-US": "Big Idea", "id-ID": "Gagasan Utama" },
+      "modes": ["friendly-explainer"],
+      "default_placement": "opener",
+      "allowed_placements": ["opener", "band"],
+      "purpose": "State the one idea the chapter exists to teach."
+    },
+    {
+      "type_id": "why-it-matters",
+      "labels": { "en-US": "Why It Matters", "id-ID": "Mengapa Ini Penting" },
+      "modes": ["friendly-explainer"],
+      "default_placement": "band",
+      "allowed_placements": ["band", "inline"],
+      "purpose": "Connect a concept to a consequence the reader cares about."
+    },
+    {
+      "type_id": "tip",
+      "labels": { "en-US": "Tip", "id-ID": "Kiat" },
+      "modes": ["friendly-explainer", "textbook", "exam-prep"],
+      "default_placement": "side-column",
+      "allowed_placements": ["side-column", "inline"],
+      "purpose": "Offer a short, practical shortcut that the main text does not need."
+    },
+    {
+      "type_id": "remember",
+      "labels": { "en-US": "Remember", "id-ID": "Ingat" },
+      "modes": ["friendly-explainer", "textbook", "exam-prep"],
+      "default_placement": "side-column",
+      "allowed_placements": ["side-column", "inline"],
+      "purpose": "Restate a point the reader must carry forward."
+    },
+    {
+      "type_id": "warning",
+      "labels": { "en-US": "Warning", "id-ID": "Peringatan" },
+      "modes": ["friendly-explainer", "textbook", "exam-prep"],
+      "default_placement": "band",
+      "allowed_placements": ["band", "inline", "side-column"],
+      "purpose": "Keep a safety qualification or common harmful error prominent."
+    },
+    {
+      "type_id": "myth-fact",
+      "labels": { "en-US": "Myth vs Fact", "id-ID": "Mitos vs Fakta" },
+      "modes": ["friendly-explainer"],
+      "default_placement": "band",
+      "allowed_placements": ["band", "full-page"],
+      "purpose": "Repair a persistent misconception by contrasting it with the supported model."
+    },
+    {
+      "type_id": "try-it",
+      "labels": { "en-US": "Try It", "id-ID": "Coba Sendiri" },
+      "modes": ["friendly-explainer"],
+      "default_placement": "band",
+      "allowed_placements": ["band", "inline"],
+      "purpose": "Invite a small, safe action that makes the concept concrete."
+    },
+    {
+      "type_id": "technical-corner",
+      "labels": { "en-US": "Technical Corner", "id-ID": "Sudut Teknis" },
+      "modes": ["friendly-explainer"],
+      "default_placement": "band",
+      "allowed_placements": ["band", "full-page"],
+      "purpose": "Hold optional depth so the main path stays usable without it."
+    },
+    {
+      "type_id": "definition",
+      "labels": { "en-US": "Definition", "id-ID": "Definisi" },
+      "modes": ["friendly-explainer", "textbook"],
+      "default_placement": "side-column",
+      "allowed_placements": ["side-column", "inline"],
+      "purpose": "Define a term precisely at first use."
+    },
+    {
+      "type_id": "key-principle",
+      "labels": { "en-US": "Key Principle", "id-ID": "Prinsip Kunci" },
+      "modes": ["textbook"],
+      "default_placement": "band",
+      "allowed_placements": ["band", "inline"],
+      "purpose": "State a proposition or principle the chapter builds on."
+    },
+    {
+      "type_id": "evidence-note",
+      "labels": { "en-US": "Evidence Note", "id-ID": "Catatan Bukti" },
+      "modes": ["textbook"],
+      "default_placement": "band",
+      "allowed_placements": ["band", "side-column"],
+      "purpose": "Summarize the evidence behind a claim and its strength or limits."
+    },
+    {
+      "type_id": "worked-example",
+      "labels": { "en-US": "Worked Example", "id-ID": "Contoh Terpandu" },
+      "modes": ["friendly-explainer", "textbook"],
+      "default_placement": "band",
+      "allowed_placements": ["band", "full-page"],
+      "purpose": "Model a procedure step by step with the reasoning visible."
+    },
+    {
+      "type_id": "case",
+      "labels": { "en-US": "Case", "id-ID": "Kasus" },
+      "modes": ["textbook", "exam-prep"],
+      "default_placement": "band",
+      "allowed_placements": ["band", "full-page"],
+      "purpose": "Apply the concept to a synthetic or documented scenario."
+    },
+    {
+      "type_id": "limits",
+      "labels": { "en-US": "Limitations", "id-ID": "Batasan" },
+      "modes": ["textbook"],
+      "default_placement": "side-column",
+      "allowed_placements": ["side-column", "band"],
+      "purpose": "Mark where a model, method, or analogy stops applying."
+    },
+    {
+      "type_id": "must-know",
+      "labels": { "en-US": "Must Know", "id-ID": "Wajib Tahu" },
+      "modes": ["exam-prep"],
+      "default_placement": "opener",
+      "allowed_placements": ["opener", "band"],
+      "purpose": "List the concepts the blueprint makes non-negotiable."
+    },
+    {
+      "type_id": "high-yield",
+      "labels": { "en-US": "High-Yield", "id-ID": "Sering Diuji" },
+      "modes": ["exam-prep"],
+      "default_placement": "side-column",
+      "allowed_placements": ["side-column", "band"],
+      "purpose": "Flag a genuinely discriminating fact, not every fact."
+    },
+    {
+      "type_id": "pearl",
+      "labels": { "en-US": "Clinical Pearl", "id-ID": "Mutiara Klinis" },
+      "modes": ["exam-prep"],
+      "default_placement": "side-column",
+      "allowed_placements": ["side-column", "inline"],
+      "purpose": "Share a compact practice insight; non-clinical books use tip instead."
+    },
+    {
+      "type_id": "exam-trap",
+      "labels": { "en-US": "Exam Trap", "id-ID": "Jebakan Ujian" },
+      "modes": ["exam-prep"],
+      "default_placement": "side-column",
+      "allowed_placements": ["side-column", "band"],
+      "purpose": "Expose a near-neighbor confusion that examiners exploit."
+    },
+    {
+      "type_id": "memory-aid",
+      "labels": { "en-US": "Memory Aid", "id-ID": "Jembatan Keledai" },
+      "modes": ["friendly-explainer", "exam-prep"],
+      "default_placement": "side-column",
+      "allowed_placements": ["side-column", "band"],
+      "purpose": "Offer an accurate mnemonic that never replaces the explanation."
+    },
+    {
+      "type_id": "reflect",
+      "labels": { "en-US": "What Do You Think?", "id-ID": "Menurut Anda?" },
+      "modes": ["friendly-explainer", "textbook"],
+      "default_placement": "band",
+      "allowed_placements": ["band", "inline"],
+      "reveal": ["none", "chapter-end"],
+      "default_reveal": { "friendly-explainer": "none", "textbook": "none" },
+      "purpose": "Ask an open, unscored question tied to an objective; no key, at most a discussion."
+    },
+    {
+      "type_id": "quick-check",
+      "labels": { "en-US": "Quick Check", "id-ID": "Cek Cepat" },
+      "modes": ["friendly-explainer", "textbook", "exam-prep"],
+      "default_placement": "band",
+      "allowed_placements": ["band", "inline"],
+      "requires_item": true,
+      "reveal": ["inline", "chapter-end", "book-end"],
+      "default_reveal": { "friendly-explainer": "inline", "textbook": "chapter-end", "exam-prep": "chapter-end" },
+      "purpose": "Place a retrieval prompt whose stem is in the manuscript and whose key lives in the item bank."
+    },
+    {
+      "type_id": "answer-key",
+      "labels": { "en-US": "Answers", "id-ID": "Kunci Jawaban" },
+      "modes": ["friendly-explainer", "textbook", "exam-prep"],
+      "default_placement": "full-page",
+      "allowed_placements": ["full-page", "band"],
+      "requires_for": true,
+      "purpose": "Collect the keys for quick checks revealed at chapter end or book end."
+    }
+  ]
+}

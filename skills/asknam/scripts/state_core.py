@@ -972,6 +972,7 @@ def register_artifact(
     item_ids: list[str] | None = None,
     semantic_block_ids: list[str] | None = None,
     blockers: list[str] | None = None,
+    callout_ids: list[str] | None = None,
 ) -> dict[str, Any]:
     if not ARTIFACT_ID_RE.fullmatch(artifact_id):
         raise StateError("Artifact id must use lowercase letters, digits, dots, underscores, or hyphens")
@@ -1153,6 +1154,7 @@ def register_artifact(
     normalized_figure_ids = list(dict.fromkeys(figure_ids or []))
     normalized_item_ids = list(dict.fromkeys(item_ids or []))
     normalized_semantic_block_ids = list(dict.fromkeys(semantic_block_ids or []))
+    normalized_callout_ids = list(dict.fromkeys(callout_ids or []))
     provenance = {
         "origin": origin,
         "creator": creator,
@@ -1173,6 +1175,7 @@ def register_artifact(
         "figure_ids": normalized_figure_ids,
         "item_ids": normalized_item_ids,
         "semantic_block_ids": normalized_semantic_block_ids,
+        "callout_ids": normalized_callout_ids,
         "blockers": normalized_blockers,
         "provenance": provenance,
         "registered_at": now,
@@ -1201,6 +1204,7 @@ def register_artifact(
         "figure_ids": normalized_figure_ids,
         "item_ids": normalized_item_ids,
         "semantic_block_ids": normalized_semantic_block_ids,
+        "callout_ids": normalized_callout_ids,
         "blockers": normalized_blockers,
         "provenance": provenance,
         "revision_history": revision_history,
@@ -1689,8 +1693,10 @@ def validate_state(
             "figure_ids",
             "item_ids",
             "semantic_block_ids",
+            "callout_ids",
         ):
-            values = artifact.get(field)
+            # Entries registered before the callout contract have no callout_ids.
+            values = artifact.get(field, [] if field == "callout_ids" else None)
             if (
                 not isinstance(values, list)
                 or any(not isinstance(value, str) or not value for value in values)
@@ -1711,9 +1717,11 @@ def validate_state(
             source = artifacts.get(item.get("artifact_id"))
             if source is None:
                 errors.append(f"Artifact {artifact_id} has unknown input {item.get('artifact_id')}")
+            # Blocked artifacts retain prior inputs; freshness and approval gates
+            # still reject them, just as they reject stale artifacts.
             elif source["sha256"] != item.get("sha256") and artifact.get(
                 "status"
-            ) != "stale":
+            ) not in {"stale", "blocked"}:
                 errors.append(
                     f"Artifact {artifact_id} is stale because input {source['artifact_id']} changed"
                 )
@@ -1749,6 +1757,22 @@ def validate_state(
                     errors.append(
                         f"Artifact {artifact_id} revision {revision.get('revision')}: {exc}"
                     )
+
+    for artifact in entries:
+        if artifact.get("kind") != "localized_manuscript":
+            continue
+        present = set(artifact.get("callout_ids", []))
+        for item in artifact.get("inputs", []):
+            source = artifacts.get(item.get("artifact_id"))
+            if not source or source.get("kind") != "edited_manuscript":
+                continue
+            missing = sorted(set(source.get("callout_ids", [])) - present)
+            if missing:
+                # Independently authored editions are allowed, so this stays a warning.
+                warnings.append(
+                    f"Localized manuscript {artifact.get('artifact_id')} omits callout IDs "
+                    f"present in {source['artifact_id']}: {missing}"
+                )
 
     approvals = state.get("approvals", [])
     approval_ids = [item.get("approval_id") for item in approvals]

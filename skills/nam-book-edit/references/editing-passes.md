@@ -12,7 +12,7 @@ Check explanations, internal logic, terminology, notation, timeline, cross-chapt
 
 ## Integration edit
 
-Fit approved teaching elements, figure/table callouts, assessment links, glossary targets, and cross-references into the prose. Prevent duplicated explanation and ensure each inserted object is introduced, interpretable, and used.
+Fit approved callouts, figure and table references, assessment links, glossary targets, and cross-references into the prose. Prevent duplicated explanation and ensure each inserted object is introduced, interpretable, and used.
 
 ## Line edit
 
@@ -24,7 +24,7 @@ Apply locale and house style for grammar, punctuation, capitalization, spelling,
 
 ## Proof pass
 
-Proof the typeset artifact, not only its source. Record page or location references for widows/orphans, broken headings, clipped objects, bad line breaks, cross-reference failures, caption separation, and character corruption. Route layout repairs to publishing.
+Proof the typeset artifact, not only its source. Record page or location references for widows/orphans, broken headings, clipped objects, bad line breaks, cross-reference failures, caption separation, callouts separated from their anchor paragraph, and character corruption. Route layout repairs to publishing.
 
 ## Reporting
 

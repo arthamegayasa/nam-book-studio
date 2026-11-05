@@ -54,6 +54,7 @@ def parser() -> argparse.ArgumentParser:
     artifact.add_argument("--figure-id", action="append", default=[])
     artifact.add_argument("--item-id", action="append", default=[])
     artifact.add_argument("--semantic-block-id", action="append", default=[])
+    artifact.add_argument("--callout-id", action="append", default=[])
     artifact.add_argument("--blocker", action="append", default=[])
     artifact.add_argument("--origin", default="project-generated")
     artifact.add_argument("--creator", default="Nam Book Studio")
@@ -127,6 +128,7 @@ def main(argv: list[str] | None = None) -> int:
                 figure_ids=unique(args.figure_id),
                 item_ids=unique(args.item_id),
                 semantic_block_ids=unique(args.semantic_block_id),
+                callout_ids=unique(args.callout_id),
                 blockers=unique(args.blocker),
             )
         elif args.command == "transition":

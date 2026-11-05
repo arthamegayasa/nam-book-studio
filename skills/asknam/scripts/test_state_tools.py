@@ -13,6 +13,7 @@ from pathlib import Path
 from state_core import (
     PROJECT_SCHEMA_URI,
     StateError,
+    artifact_is_fresh,
     atomic_write_json,
     build_route,
     create_manifest,
@@ -33,10 +34,12 @@ from validate_resources import validate as validate_resources
 
 class StateToolsTests(unittest.TestCase):
     def register_fixture(self, state, state_path, kind, artifact_id, payload,
-                         input_ids=None, chapter_id=None, status="review", raw_text=False):
+                         input_ids=None, chapter_id=None, status="review", raw_text=False,
+                         blockers=None, callout_ids=None, locale=None):
         slot = state["artifact_registry"]["slots"][kind]
+        locale = locale or state["source_locale"]
         path = slot["path"].replace("{artifact_id}", artifact_id).replace(
-            "{locale}", state["source_locale"]
+            "{locale}", locale
         ).replace("{chapter_id}", chapter_id or "")
         destination = state_path.parent.parent / path
         destination.parent.mkdir(parents=True, exist_ok=True)
@@ -52,8 +55,9 @@ class StateToolsTests(unittest.TestCase):
         return register_artifact(
             state, state_path, artifact_id=artifact_id, kind=kind,
             relative_path=path, produced_by=slot["produced_by"], status=status,
-            locale=state["source_locale"], chapter_id=chapter_id,
+            locale=locale, chapter_id=chapter_id,
             input_ids=input_ids or [], claim_ids=[], source_ids=[],
+            blockers=blockers, callout_ids=callout_ids,
             origin="test-fixture", creator="Test author", license_name="project-owned",
             source_url="", notice_path="",
         )
@@ -713,6 +717,62 @@ class StateToolsTests(unittest.TestCase):
             self.assertIn("nam-book-architect", actionable)
             self.assertNotIn("nam-book-voice", actionable)
 
+    def test_upstream_revision_preserves_blocked_downstream_without_unlocking_it(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            state, state_path = self.create(
+                Path(temporary), risk_level="R3", medical_enabled=True,
+                jurisdiction="Test jurisdiction", evidence_cutoff=date.today().isoformat(),
+                revalidate_before_export=date.today().isoformat(),
+            )
+            self.approve_brief(state)
+            transition_node(state, "nam-book-research", "running")
+            self.register_fixture(state, state_path, "research_brief", "research-brief", {"version": 1})
+            self.register_fixture(state, state_path, "evidence_ledger", "evidence-ledger", {"version": 1})
+            transition_node(state, "nam-book-research", "complete")
+            transition_node(state, "nam-book-architect", "running")
+            architecture = self.register_fixture(
+                state, state_path, "book_architecture", "book-architecture", {"version": 1},
+                input_ids=["research-brief", "evidence-ledger"], status="blocked",
+                blockers=["missing-source:mechanism"],
+            )
+            original_architecture = copy.deepcopy(architecture)
+
+            mark_artifact_stale(state, "research-brief", "Additional evidence inspected")
+            mark_artifact_stale(state, "evidence-ledger", "Additional evidence inspected")
+            transition_node(state, "nam-book-research", "running")
+            updated_brief = self.register_fixture(
+                state, state_path, "research_brief", "research-brief", {"version": 2},
+            )
+            errors, _ = validate_state(state, state_path)
+            self.assertEqual(errors, [])
+            self.register_fixture(state, state_path, "evidence_ledger", "evidence-ledger", {"version": 2})
+            transition_node(state, "nam-book-research", "complete")
+
+            artifacts = {item["artifact_id"]: item for item in state["artifact_registry"]["entries"]}
+            architecture = artifacts["book-architecture"]
+            self.assertEqual(architecture, original_architecture)
+            self.assertNotEqual(architecture["inputs"][0]["sha256"], updated_brief["sha256"])
+            self.assertFalse(artifact_is_fresh(architecture, artifacts))
+            errors, _ = validate_state(state, state_path)
+            self.assertEqual(errors, [])
+            with self.assertRaisesRegex(StateError, "stale or blocked"):
+                decide_approval(
+                    state, approval_id="architecture", decision="approved",
+                    decided_by="Reviewer", basis_ids=["book-architecture"], note="Attempt blocked basis",
+                )
+            with self.assertRaisesRegex(StateError, "lacks registered outputs"):
+                transition_node(state, "nam-book-architect", "complete")
+            with self.assertRaisesRegex(StateError, "blocked by"):
+                transition_node(state, "nam-book-voice", "running")
+
+            # Retained fingerprints are permitted only while the artifact is unusable.
+            incorrectly_unblocked = copy.deepcopy(state)
+            candidate = next(item for item in incorrectly_unblocked["artifact_registry"]["entries"]
+                             if item["artifact_id"] == "book-architecture")
+            candidate.update(status="review", blockers=[])
+            errors, _ = validate_state(incorrectly_unblocked, state_path)
+            self.assertTrue(any("stale because input research-brief changed" in error for error in errors))
+
     def test_registry_preserves_ids_blockers_provenance_and_revision_bytes(self):
         with tempfile.TemporaryDirectory() as temporary:
             project_dir = Path(temporary)
@@ -1040,6 +1100,124 @@ class StateToolsTests(unittest.TestCase):
                 "audit",
             )
             self.assertEqual([item["skill"] for item in audit["nodes"]], ["nam-book-validate"])
+
+
+    def advance_text_pipeline_to_localize(self, state, state_path, callout_ids):
+        """Run the text-only lane up to a running localize node with a locked source."""
+        self.approve_brief(state)
+        transition_node(state, "nam-book-research", "running")
+        self.register_fixture(state, state_path, "research_brief", "research-brief", {"version": 1})
+        self.register_fixture(state, state_path, "evidence_ledger", "evidence-ledger", {"version": 1})
+        transition_node(state, "nam-book-research", "complete")
+        transition_node(state, "nam-book-architect", "running")
+        self.register_fixture(state, state_path, "book_architecture", "book-architecture", {"version": 1},
+                              input_ids=["research-brief", "evidence-ledger"])
+        transition_node(state, "nam-book-architect", "complete")
+        decide_approval(state, approval_id="architecture", decision="approved", decided_by="Reviewer",
+                        basis_ids=["book-architecture"], note="Chapter graph accepted")
+        transition_node(state, "nam-book-voice", "running")
+        self.register_fixture(state, state_path, "voice_profile", "voice-profile", "voice: warm", raw_text=True)
+        transition_node(state, "nam-book-voice", "complete")
+        transition_node(state, "nam-book-write", "running")
+        self.register_fixture(state, state_path, "chapter_draft", "chapter-ch01-draft", "# Draft",
+                              chapter_id="ch-01", raw_text=True)
+        transition_node(state, "nam-book-write", "complete")
+        transition_node(state, "nam-book-teach", "running")
+        self.register_fixture(state, state_path, "teaching_plan", "teaching-plan", "enhancements: []", raw_text=True)
+        self.register_fixture(state, state_path, "enriched_draft", "chapter-ch01-enriched", "# Enriched",
+                              chapter_id="ch-01", raw_text=True, input_ids=["chapter-ch01-draft"],
+                              callout_ids=callout_ids)
+        transition_node(state, "nam-book-teach", "complete")
+        transition_node(state, "nam-book-edit", "running")
+        self.register_fixture(state, state_path, "edited_manuscript", "edited-id", "# Edited", raw_text=True,
+                              input_ids=["chapter-ch01-enriched"], callout_ids=callout_ids)
+        self.register_fixture(state, state_path, "edit_report", "edit-report", "pass: integration", raw_text=True)
+        transition_node(state, "nam-book-edit", "complete")
+        decide_approval(state, approval_id="source-content-lock", decision="approved", decided_by="Reviewer",
+                        basis_ids=["edited-id"], note="Source edition locked")
+        transition_node(state, "nam-book-localize", "running")
+
+    def test_registry_records_callout_ids_in_entry_history_and_cli(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            state, state_path = self.create(Path(temporary))
+            self.approve_brief(state)
+            transition_node(state, "nam-book-research", "running")
+            entry = self.register_fixture(
+                state, state_path, "research_brief", "research-brief", {"version": 1},
+                callout_ids=["callout-ch01-02", "callout-ch01-01", "callout-ch01-02"],
+            )
+            self.assertEqual(entry["callout_ids"], ["callout-ch01-02", "callout-ch01-01"])
+            self.assertEqual(entry["revision_history"][-1]["callout_ids"], ["callout-ch01-02", "callout-ch01-01"])
+            errors, _ = validate_state(state, state_path)
+            self.assertEqual(errors, [])
+            atomic_write_json(state_path, state)
+
+            ledger_path = ".nam-book/artifacts/research/evidence-ledger.json"
+            (state_path.parent.parent / ledger_path).write_text("{}", encoding="utf-8")
+            scripts = Path(__file__).resolve().parent
+            result = subprocess.run(
+                [sys.executable, str(scripts / "update_state.py"), "--state", str(state_path),
+                 "register-artifact", "--id", "evidence-ledger", "--kind", "evidence_ledger",
+                 "--path", ledger_path, "--produced-by", "nam-book-research", "--status", "review",
+                 "--locale", "id-ID", "--callout-id", "callout-ch01-03", "--callout-id", "callout-ch01-04"],
+                capture_output=True, text=True, check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            saved = json.loads(state_path.read_text(encoding="utf-8"))
+            ledger = next(item for item in saved["artifact_registry"]["entries"]
+                          if item["artifact_id"] == "evidence-ledger")
+            self.assertEqual(ledger["callout_ids"], ["callout-ch01-03", "callout-ch01-04"])
+
+    def test_validate_state_rejects_malformed_callout_ids_but_tolerates_legacy_entries(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            state, state_path = self.create(Path(temporary))
+            self.approve_brief(state)
+            transition_node(state, "nam-book-research", "running")
+            self.register_fixture(state, state_path, "research_brief", "research-brief", {"version": 1},
+                                  callout_ids=["callout-ch01-01"])
+            malformed = copy.deepcopy(state)
+            target = next(item for item in malformed["artifact_registry"]["entries"]
+                          if item["artifact_id"] == "research-brief")
+            target["callout_ids"] = ["callout-ch01-01", "", "callout-ch01-01"]
+            errors, _ = validate_state(malformed, state_path)
+            self.assertTrue(any("invalid callout_ids" in error for error in errors), errors)
+
+            legacy = copy.deepcopy(state)
+            target = next(item for item in legacy["artifact_registry"]["entries"]
+                          if item["artifact_id"] == "research-brief")
+            del target["callout_ids"]
+            errors, _ = validate_state(legacy, state_path)
+            self.assertEqual(errors, [])
+
+    def test_localized_manuscript_missing_source_callouts_is_a_parity_warning(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            state, state_path = self.create(
+                Path(temporary), target_locales=["en-US"], assessments="no",
+                illustrations="no", diagrams="no",
+            )
+            self.advance_text_pipeline_to_localize(
+                state, state_path, ["callout-ch01-01", "callout-ch01-02"],
+            )
+            self.register_fixture(
+                state, state_path, "localized_manuscript", "localized-en", "# Localized",
+                raw_text=True, locale="en-US", input_ids=["edited-id"],
+                callout_ids=["callout-ch01-01"],
+            )
+            errors, warnings = validate_state(state, state_path)
+            self.assertEqual(errors, [])
+            parity = [item for item in warnings if "callout" in item.lower()]
+            self.assertEqual(len(parity), 1, warnings)
+            self.assertIn("callout-ch01-02", parity[0])
+            self.assertIn("localized-en", parity[0])
+
+            self.register_fixture(
+                state, state_path, "localized_manuscript", "localized-en", "# Localized v2",
+                raw_text=True, locale="en-US", input_ids=["edited-id"],
+                callout_ids=["callout-ch01-02", "callout-ch01-01"],
+            )
+            errors, warnings = validate_state(state, state_path)
+            self.assertEqual(errors, [])
+            self.assertEqual([item for item in warnings if "callout" in item.lower()], [])
 
 
 if __name__ == "__main__":
