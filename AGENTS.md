@@ -28,6 +28,20 @@ This repository packages a coordinated set of book-authoring skills. Keep the ru
 - Preserve approved work when dependencies change. Mark downstream artifacts stale rather than deleting them.
 - Keep every specialist's shared-schema links resolvable from a normal sibling-skill installation.
 
+## Agent skills
+
+### Issue tracker
+
+Issues live in GitHub Issues for `arthamegayasa/nam-book-studio`, operated through `gh`; one issue per unit of work, one pull request per issue. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+The five canonical triage roles use their default names (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`). See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: `CONTEXT.md` is the glossary and `docs/adr/` holds the decisions. See `docs/agents/domain.md`.
+
 ## Before finishing a change
 
 Run:
