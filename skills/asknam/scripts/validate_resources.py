@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -20,9 +21,14 @@ SCHEMA_FILES = {
     "book-profile.schema.json",
     "book-project.schema.json",
     "book-route.schema.json",
+    "callout-catalog.schema.json",
     "capability-catalog.schema.json",
     "evidence-ledger.schema.json",
 }
+CALLOUT_PLACEMENTS = {"inline", "side-column", "band", "full-page", "opener"}
+CALLOUT_REVEAL_RULES = {"none", "inline", "chapter-end", "book-end"}
+BOOK_MODES = {"friendly-explainer", "textbook", "exam-prep"}
+LOCALES = {"en-US", "id-ID"}
 PROJECT_SCHEMA_URI = (
     "https://raw.githubusercontent.com/arthamegayasa/nam-book-studio/"
     "main/skills/asknam/references/schemas/book-project.schema.json"
@@ -39,11 +45,80 @@ def load_object(path: Path) -> dict:
     return value
 
 
+def validate_callout_catalog(path: Path) -> list[str]:
+    """Structural checks for the callout catalog without a JSON Schema library."""
+    errors: list[str] = []
+    try:
+        catalog = load_object(path)
+    except ValueError as exc:
+        return [str(exc)]
+    label = path.name
+    if catalog.get("schema_version") != "1.0.0":
+        errors.append(f"{label}: schema_version must be 1.0.0")
+    try:
+        re.compile(str(catalog.get("id_pattern", "")))
+    except re.error as exc:
+        errors.append(f"{label}: id_pattern is not a valid regular expression: {exc}")
+    placements = catalog.get("placements")
+    if not isinstance(placements, list) or set(placements) - CALLOUT_PLACEMENTS or not placements:
+        errors.append(f"{label}: placements must be a non-empty subset of {sorted(CALLOUT_PLACEMENTS)}")
+        placements = []
+    reveal_rules = catalog.get("reveal_rules")
+    if not isinstance(reveal_rules, list) or set(reveal_rules) - CALLOUT_REVEAL_RULES or not reveal_rules:
+        errors.append(f"{label}: reveal_rules must be a non-empty subset of {sorted(CALLOUT_REVEAL_RULES)}")
+        reveal_rules = []
+    density = catalog.get("density_minimum_words_per_callout")
+    if not isinstance(density, dict) or set(density) != {"high", "medium", "low"} or any(
+        not isinstance(value, int) or value < 1 for value in density.values()
+    ):
+        errors.append(f"{label}: density_minimum_words_per_callout needs positive integers for high, medium, low")
+    types = catalog.get("types")
+    if not isinstance(types, list) or not types:
+        return errors + [f"{label}: types must be a non-empty list"]
+    seen: set[str] = set()
+    for entry in types:
+        if not isinstance(entry, dict):
+            errors.append(f"{label}: every type must be an object")
+            continue
+        type_id = str(entry.get("type_id", ""))
+        if not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", type_id):
+            errors.append(f"{label}: type_id must be kebab-case: {type_id!r}")
+        if type_id in seen:
+            errors.append(f"{label}: duplicate type_id {type_id}")
+        seen.add(type_id)
+        labels = entry.get("labels")
+        if not isinstance(labels, dict) or set(labels) != LOCALES or any(
+            not str(labels.get(locale, "")).strip() for locale in LOCALES
+        ):
+            errors.append(f"{label}: {type_id} needs non-empty labels for en-US and id-ID")
+        modes = entry.get("modes")
+        if not isinstance(modes, list) or not modes or set(modes) - BOOK_MODES:
+            errors.append(f"{label}: {type_id} modes must be a non-empty subset of {sorted(BOOK_MODES)}")
+        allowed = entry.get("allowed_placements")
+        if not isinstance(allowed, list) or not allowed or set(allowed) - set(placements):
+            errors.append(f"{label}: {type_id} allowed_placements must be a non-empty subset of the catalog placements")
+            allowed = []
+        if entry.get("default_placement") not in allowed:
+            errors.append(f"{label}: {type_id} default_placement must be one of its allowed_placements")
+        reveal = entry.get("reveal", [])
+        if not isinstance(reveal, list) or set(reveal) - set(reveal_rules):
+            errors.append(f"{label}: {type_id} reveal must be a subset of the catalog reveal_rules")
+        default_reveal = entry.get("default_reveal", {})
+        if not isinstance(default_reveal, dict) or set(default_reveal) - BOOK_MODES or any(
+            value not in reveal for value in default_reveal.values()
+        ):
+            errors.append(f"{label}: {type_id} default_reveal must map modes to one of its reveal values")
+        if not str(entry.get("purpose", "")).strip():
+            errors.append(f"{label}: {type_id} needs a purpose")
+    return errors
+
+
 def validate(require_mirrors: bool = False) -> list[str]:
     asknam = Path(__file__).resolve().parents[1]
     repository = asknam.parents[1]
     references = asknam / "references"
     errors: list[str] = []
+    errors.extend(validate_callout_catalog(references / "callout-catalog.json"))
 
     groups = {
         "profiles": PROFILE_FILES,

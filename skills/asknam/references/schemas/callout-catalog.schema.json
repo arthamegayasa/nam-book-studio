@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/arthamegayasa/nam-book-studio/main/skills/asknam/references/schemas/callout-catalog.schema.json",
+  "title": "Nam Book callout catalog",
+  "description": "The single registry of callout types, their labels per locale, allowed book modes, placements, and reveal rules.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "catalog_version",
+    "id_pattern",
+    "placements",
+    "reveal_rules",
+    "density_minimum_words_per_callout",
+    "types"
+  ],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schema_version": { "const": "1.0.0" },
+    "catalog_version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "id_pattern": { "type": "string", "minLength": 1 },
+    "placements": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "enum": ["inline", "side-column", "band", "full-page", "opener"] }
+    },
+    "reveal_rules": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "enum": ["none", "inline", "chapter-end", "book-end"] }
+    },
+    "density_minimum_words_per_callout": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["high", "medium", "low"],
+      "properties": {
+        "high": { "type": "integer", "minimum": 1 },
+        "medium": { "type": "integer", "minimum": 1 },
+        "low": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "types": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["type_id", "labels", "modes", "default_placement", "allowed_placements", "purpose"],
+        "properties": {
+          "type_id": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+          "labels": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["en-US", "id-ID"],
+            "properties": {
+              "en-US": { "type": "string", "minLength": 1 },
+              "id-ID": { "type": "string", "minLength": 1 }
+            }
+          },
+          "modes": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": { "enum": ["friendly-explainer", "textbook", "exam-prep"] }
+          },
+          "default_placement": { "enum": ["inline", "side-column", "band", "full-page", "opener"] },
+          "allowed_placements": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": { "enum": ["inline", "side-column", "band", "full-page", "opener"] }
+          },
+          "requires_item": { "type": "boolean" },
+          "requires_for": { "type": "boolean" },
+          "reveal": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": { "enum": ["none", "inline", "chapter-end", "book-end"] }
+          },
+          "default_reveal": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "friendly-explainer": { "enum": ["none", "inline", "chapter-end", "book-end"] },
+              "textbook": { "enum": ["none", "inline", "chapter-end", "book-end"] },
+              "exam-prep": { "enum": ["none", "inline", "chapter-end", "book-end"] }
+            }
+          },
+          "deprecated": { "type": "boolean" },
+          "purpose": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  }
+}
