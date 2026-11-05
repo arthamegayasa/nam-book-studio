@@ -44,13 +44,20 @@ Single-context: `CONTEXT.md` is the glossary and `docs/adr/` holds the decisions
 
 ## Before finishing a change
 
-Run:
+Run the single gate command from the repository root; it runs every check below in order and stops at the first failure:
+
+```text
+python scripts/run_checks.py
+```
+
+The underlying commands, for running one gate on its own:
 
 ```text
 python scripts/validate_repository.py
 python -m unittest discover -s tests -v
 python skills/asknam/scripts/test_state_tools.py
 python skills/asknam/scripts/validate_resources.py --require-mirrors
+python -m compileall -q scripts skills
 ```
 
 Also run the relevant skill's deterministic helper when one changed. Record new external source material in `THIRD_PARTY_NOTICES.md` only when it informed or was incorporated into the implementation.

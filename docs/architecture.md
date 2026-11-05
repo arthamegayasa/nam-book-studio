@@ -16,13 +16,13 @@ Specialists never silently update global approval or release state. AskNam valid
 ## State transitions
 
 ```text
-missing -> draft -> review -> approved
-                    |          |
-                    v          v
-                 blocked     stale
+missing -> draft -> review -> approved -> locked
+                    |          |            |
+                    v          v            v
+                 blocked     stale        stale
 ```
 
-`stale` can be cleared by regenerating or revalidating the artifact against current inputs. Marking an entry stale does not delete it. AskNam snapshots each registered revision under `.nam-book/history/`, while project backups or Git remain the disaster-recovery layer. Approval belongs to a particular artifact revision, hash, and input-hash set, not merely a path.
+`locked` is an approved revision frozen for release: a release artifact must be `approved` or `locked`, a locked artifact carries no open blockers, and a changed input still marks it `stale` like any approved artifact. `stale` can be cleared by regenerating or revalidating the artifact against current inputs. Marking an entry stale does not delete it. AskNam snapshots each registered revision under `.nam-book/history/`, while project backups or Git remain the disaster-recovery layer. Approval belongs to a particular artifact revision, hash, and input-hash set, not merely a path.
 
 ## Routing loop
 
@@ -67,7 +67,7 @@ Mode controls pedagogy and reader experience. Risk controls evidence and review.
 
 ## Release decision
 
-The release validator reports findings as `blocker`, `major`, `minor`, or `info`. A project is release-ready only when:
+The release validator reports findings as `blocker`, `major`, `minor`, or `note`. A project is release-ready only when:
 
 - no blocker remains open;
 - every required approval is recorded for the current artifact hashes;

@@ -77,6 +77,26 @@ def load_catalog(path: Path) -> set[str]:
     return names
 
 
+SKIPPED_DIRECTORIES = {"tmp", "output", "build", "dist", ".scratch", ".git", "__pycache__"}
+
+
+def markdown_files(root: Path) -> list[Path]:
+    """Return the Markdown files under *root* that belong to the package.
+
+    Directories that Git ignores or that hold scratch notes (``tmp/``, ``output/``,
+    ``build/``, ``dist/``, ``.scratch/``, ``.git/``, ``__pycache__/``) are skipped at
+    any depth so local experiments cannot fail the repository checks.
+    """
+
+    files: list[Path] = []
+    for path in sorted(root.rglob("*.md")):
+        relative_parts = path.relative_to(root).parts[:-1]
+        if any(part in SKIPPED_DIRECTORIES for part in relative_parts):
+            continue
+        files.append(path)
+    return files
+
+
 def local_markdown_targets(path: Path) -> list[Path]:
     """Return repository-local Markdown link targets declared by *path*."""
 
@@ -181,7 +201,7 @@ def validate() -> list[str]:
         except Exception as exc:  # noqa: BLE001
             errors.append(f"{schema_path.relative_to(ROOT)} is invalid JSON: {exc}")
 
-    for markdown_path in sorted(ROOT.rglob("*.md")):
+    for markdown_path in markdown_files(ROOT):
         for target in local_markdown_targets(markdown_path):
             if not target.exists():
                 errors.append(

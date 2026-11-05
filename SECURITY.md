@@ -4,7 +4,7 @@ Nam Book Studio processes user-supplied manuscripts, notes, citations, images, a
 
 ## Report a vulnerability
 
-Open a private GitHub security advisory for vulnerabilities in repository code or templates. Do not put credentials, private health information, student records, unpublished confidential material, or exploit details in a public issue.
+Open a private GitHub security advisory for vulnerabilities in repository code or templates; private vulnerability reporting is enabled on this repository. If that form is unavailable to you, open a minimal public issue that names the affected file and asks for a private channel, without credentials, private health information, student records, unpublished confidential material, or exploit details.
 
 ## Runtime expectations
 
