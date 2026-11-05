@@ -1,6 +1,6 @@
 # Mode patterns
 
-Read only the selected profile section.
+Read only the selected profile section. Architecture plans objectives, claims, visuals, and assessments; the teach skill later adds callouts from the shared [callout catalog](../../asknam/references/callout-catalog.json).
 
 ## Friendly explainer
 

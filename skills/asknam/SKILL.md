@@ -70,8 +70,9 @@ are empty:
 3. Require the specialist to return an artifact report. It must not edit the
    global manifest.
 4. Inspect each returned file, then register it with `register-artifact`. Include
-   its input artifacts; claim, source, objective, figure, item, and semantic-block
-   IDs; returned blockers; provenance; operation; and producer-node ID. AskNam
+   its input artifacts; claim, source, objective, figure, item, callout, and
+   semantic-block IDs; returned blockers; provenance; operation; and producer-node
+   ID. Manuscript artifacts list their callout IDs with `--callout-id`. AskNam
    snapshots every revision before updating the current registry view.
 5. Validate state and transition the node to `complete` only after its required
    output exists and its blockers are clear.

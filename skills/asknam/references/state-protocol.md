@@ -111,7 +111,7 @@ Every specialist returns:
 - producing skill and status
 - every input artifact ID and hash
 - producer-node ID and operation
-- preserved claim, source, figure, item, objective, and semantic-block IDs
+- preserved claim, source, figure, item, objective, callout, and semantic-block IDs
 - blockers and unresolved questions
 - origin, creator, license, source URL, and required notice path
 
@@ -134,6 +134,11 @@ python skills/asknam/scripts/update_state.py --state .nam-book/project.json regi
   --objective-id objective-001 \
   --semantic-block-id block-001
 ```
+
+Manuscript artifacts (`chapter_draft`, `enriched_draft`, `edited_manuscript`,
+`localized_manuscript`) add one `--callout-id callout-ch01-01` per callout; the
+teach skill's `inspect_callouts.py --print-ids` lists them. Validation warns when
+a localized manuscript omits a callout ID that its edited source carries.
 
 The path must resolve exactly from the manifest's artifact slot. Registration
 copies the bytes into an immutable `.nam-book/history/<artifact-id>/` snapshot;

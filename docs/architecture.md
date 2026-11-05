@@ -52,7 +52,7 @@ Use human-readable, immutable identifiers:
 - `claim_id`: `clm-ch03-014`
 - `source_id`: `src-doi-10-1234-example`
 - `figure_id`: `fig-ch03-04`
-- `callout_id`: `callout-ch03-warning-02`
+- `callout_id`: `callout-ch03-02` (type-neutral: retyping a Warning as a Remember keeps the ID)
 - `item_id`: `item-ch03-012`
 
 Renaming a heading does not change its ID. When meaning changes substantially, create a new version and record the relationship.

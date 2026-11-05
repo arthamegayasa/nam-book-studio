@@ -141,11 +141,11 @@ The setup records visual tokens, mascot choice, reference hashes, rights status,
 
 | Mode | Reader experience | Typical elements |
 | --- | --- | --- |
-| `friendly-explainer` | Motivation first, defined jargon, short conceptual chunks, warm adult voice | Big Idea, Why It Matters, Tip, Remember, Warning, Myth vs Fact, Technical Corner, quick check |
-| `textbook` | Systematic progression, terminology discipline, evidence-rich teaching | Objectives, key terms, mechanisms, applications, cases, figures, tables, summary, self-assessment |
-| `exam-prep` | Blueprint-aligned retrieval and decision practice | Must Know, High-Yield, Exam Trap, Clinical Pearl where appropriate, algorithms, rapid review, original practice items |
+| `friendly-explainer` | Motivation first, defined jargon, short conceptual chunks, warm adult voice | Big Idea, Why It Matters, Tip, Remember, Warning, Myth vs Fact, Try It, Technical Corner, reflection prompts, quick checks |
+| `textbook` | Systematic progression, terminology discipline, evidence-rich teaching | Objectives, Definition, Key Principle, Evidence Note, Worked Example, Case, Limitations, figures, tables, summary, self-assessment |
+| `exam-prep` | Blueprint-aligned retrieval and decision practice | Must Know, High-Yield, Exam Trap, Clinical Pearl where appropriate, Memory Aid, algorithms, rapid review, original practice items |
 
-Element density is a design decision, not a quota. The suite places a visual or callout when it reduces cognitive load or repairs a likely misconception, rather than mechanically adding one every few pages.
+Callouts are typed fenced divs with stable, type-neutral IDs. Their types, labels in English and Indonesian, placements, and reveal rules are defined once in the [callout catalog](skills/asknam/references/callout-catalog.json) and written per the [callout contract](skills/nam-book-teach/references/callout-contract.md). Element density is a design decision, not a quota. The suite places a visual or callout when it reduces cognitive load or repairs a likely misconception, rather than mechanically adding one every few pages.
 
 ## Evidence and medical safety
 

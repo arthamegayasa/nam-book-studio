@@ -19,7 +19,7 @@ Do not start line editing while unresolved developmental changes would discard t
 2. Diagnose before rewriting. Record structural moves, cuts, merges, factual queries, terminology conflicts, continuity problems, and missing transitions.
 3. Apply changes in descending order of impact: development, content/consistency, integration, line, then copy.
 4. Preserve citations with their supported claims and preserve uncertainty, exceptions, warnings, numbers, and units.
-5. Integrate approved callouts, figure/table references, and assessment links without duplicating their content.
+5. Integrate approved callouts, figure and table references, and assessment links without duplicating their content. A callout keeps its `callout_id` through retyping and moves, and a new callout takes the chapter's next unused number; `answer-key` callouts receive the keys that `chapter-end` and `book-end` quick checks point to.
 6. Apply the approved voice profile. Route voice calibration or drift analysis to `$nam-book-voice`.
 7. Run a post-edit claim diff. For high-stakes content, apply [references/high-stakes-editing.md](references/high-stakes-editing.md).
 

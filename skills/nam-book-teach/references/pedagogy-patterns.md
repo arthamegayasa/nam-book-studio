@@ -41,16 +41,16 @@ Request a visual only when spatial arrangement, sequence, comparison, hierarchy,
 
 ### Friendly explainer
 
-Prefer Big Idea, Why It Matters, Tip, Remember, Warning, Myth versus Fact, Try It, and optional Technical Corner. Define jargon and keep the main path usable without the technical branch.
+Prefer the catalog types `big-idea`, `why-it-matters`, `tip`, `remember`, `warning`, `myth-fact`, `try-it`, `reflect`, `quick-check`, and optional `technical-corner`. Define jargon and keep the main path usable without the technical branch.
 
 ### Textbook
 
-Prefer definition, proposition or principle, mechanism, evidence note, worked method, case application, comparison, limitations, synthesis, and self-check. Connect elements to the curriculum rather than using conversational labels by default.
+Prefer the catalog types `definition`, `key-principle`, `evidence-note`, `worked-example`, `case`, `limits`, `reflect`, and `quick-check`, with `tip`, `remember`, and `warning` where they earn their place. Mechanism, comparison, and synthesis are prose, tables, or sections, not callouts. Connect elements to the curriculum rather than using conversational labels by default.
 
 ### Exam preparation
 
-Prefer Must Know, High-Yield, discriminating feature, Clinical Pearl, Exam Trap, memory aid, timed decision path, rapid review, and retrieval set. A memory aid must remain accurate and must not replace the underlying explanation.
+Prefer the catalog types `must-know`, `high-yield`, `pearl`, `exam-trap`, `memory-aid`, `case`, `quick-check`, plus `tip`, `remember`, and `warning`. Decision paths are diagrams; rapid review and practice sets are sections. A memory aid must remain accurate and must not replace the underlying explanation.
 
 ## Density and accessibility
 
-Do not target a visual or callout every fixed number of pages; pagination changes by format. Instead, detect long conceptual stretches without a change of representation and add only what improves learning. Use text labels in addition to color or icons, keep reading order explicit, and provide meaningful captions or alt-text intent.
+The type list, labels, placements, and reveal rules are defined once in the [callout contract](callout-contract.md) and its catalog; this file only says when to reach for a pattern. Do not target a visual or callout every fixed number of pages; pagination changes by format. Instead, detect long conceptual stretches without a change of representation and add only what improves learning. Use text labels in addition to color or icons, keep reading order explicit, and provide meaningful captions or alt-text intent.
