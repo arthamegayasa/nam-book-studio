@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" role="img" aria-labelledby="title-limits">
+  <title id="title-limits">Limitations</title>
+  <g fill="none" stroke="#1f2328" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M6.9 24.3h4.2M15.5 24.3h4.3M28.3 24.3h4.2M36.9 24.3h4.2"/>
+    <path d="M24 9.1v29.8"/>
+    <path d="M19.1 14.2L24 9.1l4.9 5.1M19.1 33.8L24 38.9l4.9-5.1"/>
+  </g>
+</svg>

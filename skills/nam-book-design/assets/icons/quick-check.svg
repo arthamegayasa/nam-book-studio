@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" role="img" aria-labelledby="title-quick-check">
+  <title id="title-quick-check">Quick check</title>
+  <g fill="none" stroke="#1f2328" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M11.2 10.6h25.6c.9 0 1.7.8 1.7 1.7v25.4c0 .9-.8 1.7-1.7 1.7H11.2c-.9 0-1.7-.8-1.7-1.7V12.3c0-.9.8-1.7 1.7-1.7z"/>
+    <path d="M16.3 24.4l5.4 5.6 10.4-12.1"/>
+  </g>
+</svg>

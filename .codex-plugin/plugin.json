@@ -21,7 +21,7 @@
   "interface": {
     "displayName": "Nam Book Studio",
     "shortDescription": "Build evidence-aware illustrated books",
-    "longDescription": "AskNam coordinates book architecture, research, drafting, teaching, assessment, project-specific hand-drawn illustration and mascot setup, diagrams, editing, localization, production, and release validation.",
+    "longDescription": "AskNam coordinates book architecture, research, drafting, teaching, assessment, project-specific hand-drawn illustration and mascot setup, page design proven on a sample chapter, diagrams, editing, localization, production, and release validation.",
     "developerName": "Artha Megayasa",
     "category": "Productivity",
     "capabilities": [

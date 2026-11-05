@@ -113,11 +113,68 @@ class RepositoryTests(unittest.TestCase):
         ]
         self.assertEqual(["nam-book-illustration-setup"], owners)
 
+    def test_design_stage_owns_page_design_and_gates_publish_proof(self) -> None:
+        catalog = json.loads(
+            (ROOT / "skills" / "asknam" / "references" / "skill-catalog.json").read_text(encoding="utf-8")
+        )
+        capabilities = {item["skill"]: item for item in catalog["capabilities"]}
+        design = capabilities["nam-book-design"]
+        nodes = {item["id"]: item for item in design["route_nodes"]}
+        self.assertEqual(["nam-book-illustration-setup"], nodes["nam-book-design"]["depends_on"])
+        self.assertEqual(["project-brief"], nodes["nam-book-design"]["approval_gates"])
+        self.assertEqual({"design_spec", "design_assets"}, set(nodes["nam-book-design"]["produces"]))
+        self.assertEqual("proof", nodes["nam-book-design-proof"]["operation"])
+        self.assertEqual(["nam-book-design"], nodes["nam-book-design-proof"]["depends_on"])
+        self.assertEqual(["design_proof"], nodes["nam-book-design-proof"]["produces"])
+        publish = capabilities["nam-book-publish"]
+        proof = next(item for item in publish["route_nodes"] if item["id"] == "nam-book-publish-proof")
+        self.assertIn("nam-book-design", proof["depends_on"])
+        self.assertIn("design", proof["approval_gates"])
+        owners = [
+            item["skill"] for item in capabilities.values()
+            if any(output["kind"] in {"design_spec", "design_assets", "design_proof"} for output in item["produces"])
+        ]
+        self.assertEqual(["nam-book-design"], owners)
+        schema = json.loads(
+            (ROOT / "skills" / "asknam" / "references" / "schemas" / "book-project.schema.json").read_text(encoding="utf-8")
+        )
+        kinds = schema["properties"]["approvals"]["items"]["properties"]["kind"]["enum"]
+        self.assertIn("design", kinds)
+
+    def test_design_presets_match_the_template_and_cover_every_mode(self) -> None:
+        assets = ROOT / "skills" / "nam-book-design" / "assets"
+        template = json.loads((assets / "design-spec.template.json").read_text(encoding="utf-8"))
+        self.assertEqual("", template["project_id"])
+        self.assertTrue(template["open_questions"])
+        presets = {path.stem: json.loads(path.read_text(encoding="utf-8")) for path in (assets / "presets").glob("*.json")}
+        self.assertEqual({"friendly-explainer", "textbook", "exam-prep"}, set(presets))
+        for mode, preset in presets.items():
+            with self.subTest(mode=mode):
+                self.assertEqual(mode, preset["profile"])
+                self.assertEqual(mode, preset["preset"])
+                self.assertEqual(set(template), set(preset))
+                self.assertEqual({"inline", "side-column", "band", "full-page", "opener"}, set(preset["callouts"]))
+                self.assertIn(preset["render"]["pdf"]["engine"], {"chromium", "libreoffice"})
+        catalog = json.loads(
+            (ROOT / "skills" / "asknam" / "references" / "callout-catalog.json").read_text(encoding="utf-8")
+        )
+        icons = {path.stem for path in (assets / "icons").glob("*.svg")}
+        self.assertEqual({item["type_id"] for item in catalog["types"]}, icons)
+        for locale in ("en-US", "id-ID"):
+            sample = (assets / "sample-chapter" / f"{locale}.md").read_text(encoding="utf-8")
+            for entry in catalog["types"]:
+                self.assertIn(f"type={entry['type_id']}", sample, f"{locale} sample lacks {entry['type_id']}")
+
     def test_all_profiles_include_early_art_setup(self) -> None:
         for profile_path in (ROOT / "skills" / "asknam" / "references" / "profiles").glob("*.json"):
             with self.subTest(profile=profile_path.stem):
                 profile = json.loads(profile_path.read_text(encoding="utf-8"))
                 self.assertIn("nam-book-illustration-setup", profile["start_skills"])
+                self.assertIn("nam-book-design", profile["start_skills"])
+                self.assertLess(
+                    profile["start_skills"].index("nam-book-illustration-setup"),
+                    profile["start_skills"].index("nam-book-design"),
+                )
 
     def test_skill_reference_links_stay_inside_sibling_installation(self) -> None:
         skills_root = (ROOT / "skills").resolve()

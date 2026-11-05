@@ -23,6 +23,7 @@ SCHEMA_FILES = {
     "book-route.schema.json",
     "callout-catalog.schema.json",
     "capability-catalog.schema.json",
+    "design-spec.schema.json",
     "evidence-ledger.schema.json",
 }
 CALLOUT_PLACEMENTS = {"inline", "side-column", "band", "full-page", "opener"}

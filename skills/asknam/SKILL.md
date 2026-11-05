@@ -33,6 +33,12 @@ silently choose Nam for every book. Use the focused `setup-illustration` intent
 when the user requests only this decision, even if visual feature switches are
 currently off; that intent does not enable production or manuscript work.
 
+Every project also runs `nam-book-design` before chapters are typeset: it
+writes the design spec, generates the stylesheet assets, and renders a sample
+chapter for the hash-bound `design` approval that publication proofs require.
+Use the focused `design` intent when the user asks only to set or change the
+book's look.
+
 Medical work also requires jurisdiction, evidence cutoff, and a
 revalidation-before-export date. Summarize these decisions and obtain the
 project-brief approval before starting specialists.
@@ -85,6 +91,12 @@ At an approval gate, show the actual artifact or validation report being
 approved. Record the decision maker and artifact hashes as the approval basis.
 Continue automatically after approval; stop on rejection, unresolved evidence,
 rights uncertainty, or a specialist failure that changes the route.
+
+The `design` gate binds `design_spec` and `design_assets` after both design
+nodes are complete. Show the rendered sample chapter from the fresh
+`design_proof` bundle before asking; the helper refuses a decision without a
+passing proof rendered from exactly those bytes. Register a re-rendered proof
+as a new revision of the same proof artifact.
 
 The `illustration-setup` gate binds both `illustration_setup` and
 `character_bible` after the setup stage is complete. Show the inspected

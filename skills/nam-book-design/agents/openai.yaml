@@ -1,0 +1,4 @@
+interface:
+  display_name: "Nam Book Design"
+  short_description: "Set the page design and prove it on a sample chapter"
+  default_prompt: "Use $nam-book-design to set this book's typography, page grid, callout styles, and icons, then render a sample chapter for approval."

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" role="img" aria-labelledby="title-try-it">
+  <title id="title-try-it">Try it</title>
+  <g fill="none" stroke="#1f2328" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M24 7.6c9.2-.2 16.7 7.1 16.6 16.3-.1 9.3-7.5 16.5-16.7 16.4-9.1-.1-16.3-7.4-16.2-16.5.1-9 7.3-16.1 16.3-16.2z"/>
+    <path d="M19.6 16.2l12.1 7.6-12.1 7.9V16.2z"/>
+  </g>
+</svg>

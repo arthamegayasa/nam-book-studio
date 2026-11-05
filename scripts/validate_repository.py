@@ -17,6 +17,7 @@ EXPECTED_SKILLS = {
     "asknam",
     "nam-book-architect",
     "nam-book-assess",
+    "nam-book-design",
     "nam-book-diagram",
     "nam-book-edit",
     "nam-book-illustrate",

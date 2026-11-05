@@ -50,6 +50,32 @@ _Avoid_: block (unqualified), paragraph ID, chunk
 The in-text mention that points the reader to a figure or table.
 _Avoid_: figure callout, table callout, figure call
 
+## Page design
+
+**Design spec**:
+The project-level description of how the book looks: trim, page grid, typography, color roles, callout styles per placement, icon set, chapter opener, figure and table styles, running heads, and render engines. One per project, started from a mode preset.
+_Avoid_: stylesheet, theme, template, layout file
+
+**Design preset**:
+A complete design spec for one book mode that a project starts from and then adapts. The approved spec, not the preset, is the contract.
+_Avoid_: default design, profile (that is the mode's pedagogical defaults)
+
+**Design assets**:
+The files generated from the design spec that the build path consumes: print and EPUB stylesheets, the callout filter, the reference document, and the icon set. Derived, never hand-edited.
+_Avoid_: theme files, templates
+
+**Design proof**:
+The sample chapter rendered through the real build path from a specific design spec and assets, with its report and build manifest. It is the evidence the author approves on; the spec and assets are what gets approved.
+_Avoid_: preview, mock-up, draft layout
+
+**Sample chapter**:
+The bundled, original, non-medical chapter that exercises every callout type, a figure, a table, a quick check with its answer key, and the chapter opener; filtered to the active mode when rendered.
+_Avoid_: demo chapter, lorem ipsum
+
+**Render path**:
+The single build pipeline shared by the design proof and publication: Pandoc for DOCX, EPUB, and HTML; a Chromium-family browser or LibreOffice for PDF.
+_Avoid_: export, conversion script
+
 ## Layout vocabulary
 
 **Placement**:

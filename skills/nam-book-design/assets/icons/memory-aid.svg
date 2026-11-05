@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" role="img" aria-labelledby="title-memory-aid">
+  <title id="title-memory-aid">Memory aid</title>
+  <g fill="none" stroke="#1f2328" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M10.4 30.6c-3.7-5.4-2.1-12.6 3.8-15.8 4.8-2.6 10.6-.9 13.4 3.6 2.6-4.4 8.4-6.2 13.2-3.6 5.9 3.2 7.6 10.6 3.4 15.9"/>
+    <path d="M10.4 30.6c3.1 6.4 10.9 8.4 16.1 3.5 1.3-1.2 2.4-2.9 3.3-5 .4 5 4.5 8.2 9.2 6.9 2.9-.8 5.3-3.2 5.2-5.4"/>
+    <path d="M27.6 18.4c-2.4 3.7-2.3 8.8.2 10.7"/>
+  </g>
+</svg>

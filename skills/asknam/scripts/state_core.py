@@ -39,6 +39,7 @@ SUPPORTED_INTENTS = {
     "revise",
     "audit",
     "setup-illustration",
+    "design",
     "illustrate",
     "localize",
     "publish",
@@ -57,6 +58,9 @@ NODE_STATUSES = {
 ARTIFACT_STATUSES = {"draft", "review", "approved", "locked", "stale", "blocked"}
 APPROVAL_STATUSES = {"pending", "approved", "rejected", "expired"}
 SETUP_NODE = "nam-book-illustration-setup"
+DESIGN_SKILL = "nam-book-design"
+DESIGN_NODE = "nam-book-design"
+DESIGN_PROOF_NODE = "nam-book-design-proof"
 ID_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 ARTIFACT_ID_RE = re.compile(r"^[a-z0-9][a-z0-9._-]*$")
 HASH_RE = re.compile(r"^[a-f0-9]{64}$")
@@ -283,6 +287,7 @@ def create_manifest(
     approvals = [
         _approval_record("project-brief", now),
         _approval_record("architecture", now),
+        _approval_record("design", now),
     ]
     if features["illustrations"] or features["diagrams"]:
         approvals.append(_approval_record("illustration-setup", now))
@@ -351,7 +356,7 @@ def approval_is_current(
             return False
         if source.get("sha256") != basis.get("sha256"):
             return False
-        if approval.get("approval_id") == "illustration-setup" and (
+        if approval.get("approval_id") in {"illustration-setup", "design"} and (
             source.get("revision") != basis.get("revision")
             or not artifact_is_fresh(source, artifacts)
         ):
@@ -502,7 +507,9 @@ def _select_skills(
         raise StateError(f"Unsupported intent: {intent}")
     if intent == "setup-illustration":
         return {SETUP_NODE}
-    if intent in {"start", "resume"}:
+    if intent == "design":
+        selected = {DESIGN_SKILL}
+    elif intent in {"start", "resume"}:
         selected = set(profile["start_skills"])
     elif intent == "revise":
         selected = {"nam-book-edit", "nam-book-validate", "nam-book-publish"}
@@ -545,6 +552,9 @@ def _select_skills(
             )
     if selected & {"nam-book-visuals", "nam-book-diagram", "nam-book-illustrate"}:
         selected.add(SETUP_NODE)
+    if DESIGN_SKILL in selected and (features["illustrations"] or features["diagrams"]):
+        # Design reads the approved art direction when the project has one.
+        selected.add(SETUP_NODE)
     return selected
 
 
@@ -582,6 +592,8 @@ def build_route(
         })
         if "illustration-setup" not in approval_index(state):
             state["approvals"].append(_approval_record("illustration-setup", utc_now()))
+    if DESIGN_SKILL in selected and "design" not in approval_index(state):
+        state["approvals"].append(_approval_record("design", utc_now()))
     index = catalog_index(catalog)
     specialized_nodes = {
         node["id"]
@@ -638,7 +650,12 @@ def build_route(
             dependencies.append("nam-book-research")
         if node_id == "nam-book-validate" and "nam-book-publish-proof" in included_ids:
             dependencies.append("nam-book-publish-proof")
-        gates = list(spec["approval_gates"])
+        # A legacy manifest that never ran the design stage keeps publishing ungated;
+        # the design record appears once the stage is routed and gates publish from then on.
+        gates = [
+            gate for gate in spec["approval_gates"]
+            if gate != "design" or "design" in approvals
+        ]
         if node_id == "nam-book-publish-release" and state["risk_level"] == "R3":
             gates.append("medical-expert-signoff")
         prior_status = previous.get(node_id, {}).get("status", "pending")
@@ -893,6 +910,12 @@ def mark_artifact_stale(
         if node["id"] in invalidated and node["status"] != "skipped":
             node["status"] = "stale"
             node["blockers"] = [f"stale-artifact:{artifact_id}"]
+    for record in state.get("staleness", []):
+        # A node invalidated again must rerun again, whatever earlier record it had satisfied.
+        if record.get("resolved_at") is None and record is not existing:
+            record["resolved_nodes"] = [
+                node_id for node_id in record.get("resolved_nodes", []) if node_id not in invalidated
+            ]
     for approval in state.get("approvals", []):
         if approval["status"] == "approved" and any(
             item["artifact_id"] in affected_artifacts for item in approval.get("basis", [])
@@ -1256,6 +1279,10 @@ def decide_approval(
         errors = illustration_setup_approval_errors(state, basis_ids, state_path)
         if errors:
             raise StateError("; ".join(errors))
+    if decision == "approved" and approval_id == "design":
+        errors = design_approval_errors(state, basis_ids, state_path)
+        if errors:
+            raise StateError("; ".join(errors))
 
     if decision == "approved" and approval_id in {
         "medical-expert-signoff",
@@ -1409,6 +1436,89 @@ def illustration_setup_approval_errors(
     return errors
 
 
+def design_approval_errors(
+    state: dict[str, Any], basis_ids: list[str], state_path: Path | None,
+) -> list[str]:
+    """Validate that the bound design was proven on a rendered sample, not its taste."""
+    errors: list[str] = []
+    artifacts = artifact_index(state)
+    basis = [artifacts[item] for item in basis_ids if item in artifacts]
+    kinds = {item["kind"] for item in basis}
+    if not {"design_spec", "design_assets"}.issubset(kinds):
+        return ["Design approval must bind design_spec and design_assets"]
+    nodes = {item["id"]: item for item in retained_nodes(state)}
+    if nodes.get(DESIGN_NODE, {}).get("status") != "complete":
+        errors.append("Design approval requires a completed design stage")
+    for entry in basis:
+        if not artifact_is_fresh(entry, artifacts):
+            errors.append(f"Design basis is not fresh: {entry['artifact_id']}")
+    pair = [item for item in basis if item["kind"] in {"design_spec", "design_assets"}]
+    if any(item["producer_node"] != DESIGN_NODE for item in pair):
+        errors.append("Design spec and assets must be registered under the design stage")
+    if state_path is None:
+        return errors + ["Design approval requires the manifest path to inspect the spec and proof"]
+    spec = next(item for item in pair if item["kind"] == "design_spec")
+    assets = next(item for item in pair if item["kind"] == "design_assets")
+    try:
+        spec_path = resolve_artifact_path(state_path, spec["path"])
+        if sha256_path(spec_path)[0] != spec["sha256"]:
+            return errors + ["Design spec bytes differ from the registered hash"]
+        if sha256_path(resolve_artifact_path(state_path, assets["path"]))[0] != assets["sha256"]:
+            return errors + ["Design assets bytes differ from the registered hash"]
+        payload = load_json(spec_path)
+        if payload.get("profile") != state["profile"]:
+            errors.append(
+                f"Design spec profile {payload.get('profile')} does not match the manifest profile {state['profile']}"
+            )
+        bound = {spec["artifact_id"]: spec, assets["artifact_id"]: assets}
+        proofs = [
+            item for item in artifacts.values()
+            if item["kind"] == "design_proof"
+            and item.get("producer_node") == DESIGN_PROOF_NODE
+            and item.get("status") not in {"stale", "blocked"}
+            and artifact_is_fresh(item, artifacts)
+            and all(
+                any(
+                    link["artifact_id"] == artifact_id
+                    and link["sha256"] == entry["sha256"]
+                    and link["revision"] == entry["revision"]
+                    for link in item.get("inputs", [])
+                )
+                for artifact_id, entry in bound.items()
+            )
+        ]
+        if not proofs:
+            errors.append(
+                "Design approval requires a fresh design proof rendered from the bound spec and assets"
+            )
+            return errors
+        if nodes.get(DESIGN_PROOF_NODE, {}).get("status") != "complete":
+            errors.append("Design approval requires a completed design proof stage")
+        proof = max(proofs, key=lambda item: (item.get("updated_at", ""), item.get("revision", 0)))
+        proof_path = resolve_artifact_path(state_path, proof["path"])
+        if sha256_path(proof_path)[0] != proof["sha256"]:
+            errors.append(f"Design proof bytes differ from the registered hash: {proof['artifact_id']}")
+        report_path = proof_path / "report.json" if proof_path.is_dir() else None
+        if report_path is None or not report_path.is_file():
+            errors.append(f"Design proof {proof['artifact_id']} lacks report.json")
+            return errors
+        report = load_json(report_path)
+        if report.get("status") != "pass":
+            errors.append(
+                f"Design proof {proof['artifact_id']} report status is {report.get('status')}; a passing report is required"
+            )
+        requested = [item for item in state.get("deliverables", []) if item != "markdown"]
+        rendered = set(report.get("formats", []))
+        missing = sorted(set(requested) - rendered)
+        if missing:
+            errors.append(
+                f"Design proof {proof['artifact_id']} report formats {sorted(rendered)} do not cover requested deliverables {missing}"
+            )
+    except (StateError, OSError, UnicodeError, AttributeError, TypeError, ValueError) as exc:
+        errors.append(f"Cannot inspect design spec or proof: {exc}")
+    return errors
+
+
 def transition_node(state: dict[str, Any], target: str, status: str) -> dict[str, Any]:
     if status not in {"ready", "running", "complete", "failed", "blocked", "stale"}:
         raise StateError(f"Unsupported node transition target: {status}")
@@ -1471,17 +1581,32 @@ def transition_node(state: dict[str, Any], target: str, status: str) -> dict[str
                 f"Node {node_id} still has stale artifacts: "
                 f"{[item['artifact_id'] for item in stale_outputs]}"
             )
-        for record in state.get("staleness", []):
-            if (
-                record.get("resolved_at") is not None
-                or node_id not in record.get("invalidates_nodes", [])
-                or node_id in record.get("resolved_nodes", [])
-            ):
-                continue
+        open_records = [
+            record
+            for record in state.get("staleness", [])
+            if record.get("resolved_at") is None
+            and node_id in record.get("invalidates_nodes", [])
+            and node_id not in record.get("resolved_nodes", [])
+        ]
+        registry = artifact_index(state)
+        # Re-registering a node's own outputs one after another is a single rerun:
+        # every output only has to postdate the first of those self-invalidations.
+        own_detected = [
+            record.get("detected_at", "")
+            for record in open_records
+            if registry.get(record.get("artifact_id"), {}).get(
+                "producer_node", registry.get(record.get("artifact_id"), {}).get("produced_by")
+            ) == node_id
+        ]
+        own_threshold = min(own_detected) if own_detected else None
+        for record in open_records:
+            threshold = record.get("detected_at", "")
+            if own_threshold is not None and record.get("detected_at", "") in own_detected:
+                threshold = own_threshold
             fresh_kinds = {
                 item["kind"]
                 for item in outputs
-                if item.get("updated_at", "") >= record.get("detected_at", "")
+                if item.get("updated_at", "") >= threshold
             }
             missing_refresh = set(node["produces"]) - fresh_kinds
             if missing_refresh:
@@ -1789,6 +1914,12 @@ def validate_state(
             ))
             if not approval_is_current(state, approval):
                 errors.append("Illustration-setup approval must expire because its basis changed")
+        if approval.get("approval_id") == "design" and approval.get("status") == "approved":
+            errors.extend(design_approval_errors(
+                state, [item["artifact_id"] for item in approval.get("basis", [])], state_path
+            ))
+            if not approval_is_current(state, approval):
+                errors.append("Design approval must expire because its basis changed")
         for basis in approval.get("basis", []):
             source = artifacts.get(basis.get("artifact_id"))
             if source is None:
