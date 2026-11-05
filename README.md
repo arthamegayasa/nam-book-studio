@@ -223,7 +223,13 @@ Publishing and the design sample-chapter proof share one build path in `skills/n
 
 ## Validate this repository
 
-The checks below use Python's standard library only. Run them from the repository root; the [Validate workflow](.github/workflows/validate.yml) runs the same checks on pushes and pull requests with Python 3.12:
+The checks use Python's standard library only. One command runs every gate in order from the repository root and stops at the first failure; the [Validate workflow](.github/workflows/validate.yml) runs the same command on pull requests and on pushes to `main` with Python 3.13:
+
+```bash
+python scripts/run_checks.py
+```
+
+The individual gates, for running one on its own:
 
 ```bash
 python scripts/validate_repository.py
