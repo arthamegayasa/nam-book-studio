@@ -35,7 +35,7 @@ from validate_resources import validate as validate_resources
 class StateToolsTests(unittest.TestCase):
     def register_fixture(self, state, state_path, kind, artifact_id, payload,
                          input_ids=None, chapter_id=None, status="review", raw_text=False,
-                         blockers=None, callout_ids=None, locale=None):
+                         blockers=None, callout_ids=None, locale=None, operation="run"):
         slot = state["artifact_registry"]["slots"][kind]
         locale = locale or state["source_locale"]
         path = slot["path"].replace("{artifact_id}", artifact_id).replace(
@@ -50,6 +50,15 @@ class StateToolsTests(unittest.TestCase):
                 '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><circle cx="16" cy="16" r="8"/></svg>',
                 encoding="utf-8",
             )
+        elif isinstance(payload, dict) and payload.get("__bundle__"):
+            # Directory bundle: every key except the marker becomes a file.
+            destination.mkdir(exist_ok=True)
+            for name, content in payload.items():
+                if name == "__bundle__":
+                    continue
+                (destination / name).write_text(
+                    content if isinstance(content, str) else json.dumps(content), encoding="utf-8",
+                )
         else:
             destination.write_text(payload if raw_text else json.dumps(payload), encoding="utf-8")
         return register_artifact(
@@ -57,7 +66,7 @@ class StateToolsTests(unittest.TestCase):
             relative_path=path, produced_by=slot["produced_by"], status=status,
             locale=locale, chapter_id=chapter_id,
             input_ids=input_ids or [], claim_ids=[], source_ids=[],
-            blockers=blockers, callout_ids=callout_ids,
+            blockers=blockers, callout_ids=callout_ids, operation=operation,
             origin="test-fixture", creator="Test author", license_name="project-owned",
             source_url="", notice_path="",
         )
@@ -889,8 +898,13 @@ class StateToolsTests(unittest.TestCase):
     def test_public_schema_uri_and_two_phase_release_route(self):
         with tempfile.TemporaryDirectory() as temporary:
             project_dir = Path(temporary)
-            state, state_path = self.create(project_dir)
+            state, state_path = self.create(project_dir, illustrations="no", diagrams="no")
             self.assertEqual(state["$schema"], PROJECT_SCHEMA_URI)
+            self.approve_brief(state)
+            self.design_fixture(state, state_path)
+            decide_approval(state, approval_id="design", decision="approved", decided_by="Nam",
+                            basis_ids=["design-spec", "design-assets"], note="Sample approved",
+                            state_path=state_path)
             state["route"] = build_route(
                 state, load_catalog(), load_profile(state["profile"]), "publish"
             )
@@ -1218,6 +1232,222 @@ class StateToolsTests(unittest.TestCase):
             errors, warnings = validate_state(state, state_path)
             self.assertEqual(errors, [])
             self.assertEqual([item for item in warnings if "callout" in item.lower()], [])
+
+
+    def design_fixture(self, state, state_path, *, spec_inputs=None, report=None, proof_id="design-proof-1"):
+        """Complete the design stage and render one proof bundle for it."""
+        transition_node(state, "nam-book-design", "running")
+        self.register_fixture(state, state_path, "design_spec", "design-spec", {
+            "profile": state["profile"], "design_version": "1.0.0",
+            "render": {"pdf": {"engine": "chromium"}},
+        }, input_ids=spec_inputs or [])
+        self.register_fixture(state, state_path, "design_assets", "design-assets", {
+            "__bundle__": True, "print.css": "aside.callout { border: 1px solid; }",
+            "callouts.lua": "return {}",
+        }, input_ids=["design-spec"])
+        transition_node(state, "nam-book-design", "complete")
+        transition_node(state, "nam-book-design-proof", "running")
+        self.register_fixture(state, state_path, "design_proof", proof_id, {
+            "__bundle__": True,
+            "report.json": report or {"status": "pass", "formats": ["pdf"]},
+            "sample-chapter.pdf": "%PDF-1.7 fixture",
+        }, input_ids=["design-spec", "design-assets"], operation="proof")
+        transition_node(state, "nam-book-design-proof", "complete")
+
+    def test_two_output_node_can_reregister_both_outputs_without_explicit_mark_stale(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            state, state_path = self.create(Path(temporary))
+            self.approve_brief(state)
+            transition_node(state, "nam-book-research", "running")
+            self.register_fixture(state, state_path, "research_brief", "research-brief", {"version": 1})
+            self.register_fixture(state, state_path, "evidence_ledger", "evidence-ledger", {"version": 1})
+            transition_node(state, "nam-book-research", "complete")
+            transition_node(state, "nam-book-research", "running")
+            self.register_fixture(state, state_path, "research_brief", "research-brief", {"version": 2})
+            self.register_fixture(state, state_path, "evidence_ledger", "evidence-ledger", {"version": 2})
+            transition_node(state, "nam-book-research", "complete")
+            self.assertTrue(state["staleness"])
+            self.assertTrue(all("nam-book-research" in record["resolved_nodes"] for record in state["staleness"]))
+            self.assertEqual(validate_state(state, state_path)[0], [])
+
+    def test_design_stage_is_routed_after_setup_and_gates_publish_proof(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            state, state_path = self.create(Path(temporary))
+            nodes = {item["id"]: item for item in state["route"]["nodes"]}
+            self.assertEqual(nodes["nam-book-design"]["depends_on"], ["nam-book-illustration-setup"])
+            self.assertEqual(nodes["nam-book-design"]["required_approvals"], ["project-brief"])
+            self.assertEqual(nodes["nam-book-design-proof"]["depends_on"], ["nam-book-design"])
+            self.assertEqual(nodes["nam-book-design-proof"]["required_approvals"], [])
+            self.assertEqual(nodes["nam-book-design-proof"]["operation"], "proof")
+            self.assertIn("nam-book-design", nodes["nam-book-publish-proof"]["depends_on"])
+            self.assertIn("design", nodes["nam-book-publish-proof"]["required_approvals"])
+            self.assertIn("design", {item["approval_id"] for item in state["approvals"]})
+            slots = state["artifact_registry"]["slots"]
+            self.assertEqual(slots["design_spec"]["produced_by"], "nam-book-design")
+            self.assertEqual(slots["design_assets"]["path"], ".nam-book/artifacts/design/assets")
+            self.assertEqual(slots["design_proof"]["path"], ".nam-book/artifacts/design/proofs/{artifact_id}")
+            self.assertIn("proof", slots["design_proof"]["operations"])
+            self.assertEqual(validate_state(state, state_path)[0], [])
+
+            text_only, text_path = self.create(Path(temporary) / "text", illustrations="no", diagrams="no")
+            nodes = {item["id"]: item for item in text_only["route"]["nodes"]}
+            self.assertEqual(nodes["nam-book-design"]["depends_on"], [])
+            self.assertNotIn("nam-book-illustration-setup", nodes)
+
+            focused = build_route(text_only, load_catalog(), load_profile(text_only["profile"]), "design")
+            self.assertEqual([item["id"] for item in focused["nodes"]], ["nam-book-design", "nam-book-design-proof"])
+            visual_focus = build_route(state, load_catalog(), load_profile(state["profile"]), "design")
+            self.assertEqual(
+                [item["id"] for item in visual_focus["nodes"]],
+                ["nam-book-illustration-setup", "nam-book-design", "nam-book-design-proof"],
+            )
+
+    def test_legacy_manifest_without_design_record_publishes_ungated(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            state, state_path = self.create(Path(temporary))
+            legacy = copy.deepcopy(state)
+            legacy["approvals"] = [item for item in legacy["approvals"] if item["approval_id"] != "design"]
+            legacy["route"] = build_route(legacy, load_catalog(), load_profile(legacy["profile"]), "publish")
+            proof = next(item for item in legacy["route"]["nodes"] if item["id"] == "nam-book-publish-proof")
+            self.assertNotIn("design", proof["required_approvals"])
+            self.assertNotIn("nam-book-design", proof["depends_on"])
+            self.assertEqual(validate_state(legacy, state_path)[0], [])
+            resumed = build_route(legacy, load_catalog(), load_profile(legacy["profile"]), "resume")
+            self.assertIn("design", {item["approval_id"] for item in legacy["approvals"]})
+            proof = next(item for item in resumed["nodes"] if item["id"] == "nam-book-publish-proof")
+            self.assertIn("design", proof["required_approvals"])
+
+    def test_design_approval_requires_fresh_passing_proof_of_the_bound_spec(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            state, state_path = self.create(Path(temporary), illustrations="no", diagrams="no")
+            self.approve_brief(state)
+            transition_node(state, "nam-book-design", "running")
+            self.register_fixture(state, state_path, "design_spec", "design-spec", {
+                "profile": state["profile"], "design_version": "1.0.0",
+            })
+            self.register_fixture(state, state_path, "design_assets", "design-assets", {
+                "__bundle__": True, "print.css": "aside.callout {}",
+            }, input_ids=["design-spec"])
+            transition_node(state, "nam-book-design", "complete")
+            with self.assertRaisesRegex(StateError, "design proof"):
+                decide_approval(state, approval_id="design", decision="approved", decided_by="Author",
+                                basis_ids=["design-spec", "design-assets"], note="", state_path=state_path)
+            with self.assertRaisesRegex(StateError, "design_spec and design_assets"):
+                decide_approval(state, approval_id="design", decision="approved", decided_by="Author",
+                                basis_ids=["design-spec"], note="", state_path=state_path)
+
+            transition_node(state, "nam-book-design-proof", "running")
+            self.register_fixture(state, state_path, "design_proof", "design-proof-1", {
+                "__bundle__": True, "report.json": {"status": "fail", "formats": ["pdf"]},
+            }, input_ids=["design-spec", "design-assets"], operation="proof")
+            transition_node(state, "nam-book-design-proof", "complete")
+            with self.assertRaisesRegex(StateError, "report"):
+                decide_approval(state, approval_id="design", decision="approved", decided_by="Author",
+                                basis_ids=["design-spec", "design-assets"], note="", state_path=state_path)
+
+            transition_node(state, "nam-book-design-proof", "running")
+            self.register_fixture(state, state_path, "design_proof", "design-proof-2", {
+                "__bundle__": True, "report.json": {"status": "pass", "formats": ["docx"]},
+            }, input_ids=["design-spec", "design-assets"], operation="proof")
+            transition_node(state, "nam-book-design-proof", "complete")
+            with self.assertRaisesRegex(StateError, "pdf"):
+                decide_approval(state, approval_id="design", decision="approved", decided_by="Author",
+                                basis_ids=["design-spec", "design-assets"], note="", state_path=state_path)
+
+            transition_node(state, "nam-book-design-proof", "running")
+            self.register_fixture(state, state_path, "design_proof", "design-proof-3", {
+                "__bundle__": True, "report.json": {"status": "pass", "formats": ["pdf", "docx"]},
+            }, input_ids=["design-spec", "design-assets"], operation="proof")
+            transition_node(state, "nam-book-design-proof", "complete")
+            approval = decide_approval(state, approval_id="design", decision="approved", decided_by="Author",
+                                       basis_ids=["design-spec", "design-assets"], note="Sample chapter looks right",
+                                       state_path=state_path)
+            self.assertEqual({item["artifact_id"] for item in approval["basis"]}, {"design-spec", "design-assets"})
+            errors, _ = validate_state(state, state_path)
+            self.assertEqual(errors, [])
+            publish = next(item for item in state["route"]["nodes"] if item["id"] == "nam-book-publish-proof")
+            self.assertNotIn("approval:design", publish["blockers"])
+
+            # A changed spec expires the decision and stales the proof.
+            transition_node(state, "nam-book-design", "running")
+            self.register_fixture(state, state_path, "design_spec", "design-spec", {
+                "profile": state["profile"], "design_version": "1.1.0",
+            })
+            approval = next(item for item in state["approvals"] if item["approval_id"] == "design")
+            self.assertEqual(approval["status"], "expired")
+            proof_entry = next(item for item in state["artifact_registry"]["entries"]
+                               if item["artifact_id"] == "design-proof-3")
+            self.assertEqual(proof_entry["status"], "stale")
+            self.assertEqual(validate_state(state, state_path)[0], [])
+
+    def test_design_spec_profile_must_match_the_manifest(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            state, state_path = self.create(Path(temporary), illustrations="no", diagrams="no")
+            self.approve_brief(state)
+            transition_node(state, "nam-book-design", "running")
+            self.register_fixture(state, state_path, "design_spec", "design-spec", {
+                "profile": "textbook", "design_version": "1.0.0",
+            })
+            self.register_fixture(state, state_path, "design_assets", "design-assets", {
+                "__bundle__": True, "print.css": "aside.callout {}",
+            }, input_ids=["design-spec"])
+            transition_node(state, "nam-book-design", "complete")
+            transition_node(state, "nam-book-design-proof", "running")
+            self.register_fixture(state, state_path, "design_proof", "design-proof-1", {
+                "__bundle__": True, "report.json": {"status": "pass", "formats": ["pdf"]},
+            }, input_ids=["design-spec", "design-assets"], operation="proof")
+            transition_node(state, "nam-book-design-proof", "complete")
+            with self.assertRaisesRegex(StateError, "profile"):
+                decide_approval(state, approval_id="design", decision="approved", decided_by="Author",
+                                basis_ids=["design-spec", "design-assets"], note="", state_path=state_path)
+
+    def test_changed_illustration_setup_expires_design_but_design_change_keeps_setup(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            state, state_path = self.create(Path(temporary))
+            self.approve_brief(state)
+            self.setup_fixture(state, state_path)
+            transition_node(state, "nam-book-illustration-setup", "complete")
+            decide_approval(state, approval_id="illustration-setup", decision="approved", decided_by="Author",
+                            basis_ids=["illustration-setup", "character-bible"], note="", state_path=state_path)
+            self.design_fixture(state, state_path, spec_inputs=["illustration-setup"])
+            decide_approval(state, approval_id="design", decision="approved", decided_by="Author",
+                            basis_ids=["design-spec", "design-assets"], note="", state_path=state_path)
+            approvals = {item["approval_id"]: item for item in state["approvals"]}
+            self.assertEqual(approvals["design"]["status"], "approved")
+
+            # Design revision: illustration approval survives.
+            transition_node(state, "nam-book-design", "running")
+            self.register_fixture(state, state_path, "design_spec", "design-spec", {
+                "profile": state["profile"], "design_version": "1.1.0", "render": {"pdf": {"engine": "chromium"}},
+            }, input_ids=["illustration-setup"])
+            approvals = {item["approval_id"]: item for item in state["approvals"]}
+            self.assertEqual(approvals["design"]["status"], "expired")
+            self.assertEqual(approvals["illustration-setup"]["status"], "approved")
+            self.assertEqual(validate_state(state, state_path)[0], [])
+
+            # Setup revision: design approval and proof become stale too.
+            self.register_fixture(state, state_path, "design_assets", "design-assets", {
+                "__bundle__": True, "print.css": "aside.callout { color: teal; }",
+            }, input_ids=["design-spec"])
+            transition_node(state, "nam-book-design", "complete")
+            transition_node(state, "nam-book-design-proof", "running")
+            self.register_fixture(state, state_path, "design_proof", "design-proof-1", {
+                "__bundle__": True, "report.json": {"status": "pass", "formats": ["pdf"], "revision": 2},
+            }, input_ids=["design-spec", "design-assets"], operation="proof")
+            transition_node(state, "nam-book-design-proof", "complete")
+            decide_approval(state, approval_id="design", decision="approved", decided_by="Author",
+                            basis_ids=["design-spec", "design-assets"], note="", state_path=state_path)
+            transition_node(state, "nam-book-illustration-setup", "running")
+            self.register_fixture(state, state_path, "illustration_setup", "illustration-setup", {
+                "mascot_mode": "custom", "hand_drawn": True, "adoption": None, "palette": ["teal"],
+                "calibration": {"status": "passed", "sample_artifact_ids": ["calibration-1"]},
+            }, ["calibration-1"])
+            approvals = {item["approval_id"]: item for item in state["approvals"]}
+            self.assertEqual(approvals["design"]["status"], "expired")
+            nodes = {item["id"]: item for item in state["route"]["nodes"]}
+            self.assertEqual(nodes["nam-book-design"]["status"], "stale")
+            self.assertEqual(nodes["nam-book-publish-proof"]["status"], "stale")
+            self.assertEqual(validate_state(state, state_path)[0], [])
 
 
 if __name__ == "__main__":

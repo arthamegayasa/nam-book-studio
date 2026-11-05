@@ -1,0 +1,283 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/arthamegayasa/nam-book-studio/main/skills/asknam/references/schemas/design-spec.schema.json",
+  "title": "Nam Book design spec",
+  "description": "Project-level page design that nam-book-design writes, the author approves on a rendered sample chapter, and nam-book-publish consumes through generated assets.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "project_id",
+    "profile",
+    "design_version",
+    "preset",
+    "callout_catalog_version",
+    "illustration_setup",
+    "trim",
+    "page",
+    "typography",
+    "color",
+    "callouts",
+    "icons",
+    "chapter_opener",
+    "figures",
+    "tables",
+    "running",
+    "render",
+    "degradation",
+    "publisher_preset",
+    "sample_chapter",
+    "decisions",
+    "open_questions"
+  ],
+  "$defs": {
+    "placement": { "enum": ["inline", "side-column", "band", "full-page", "opener"] },
+    "degraded_placement": { "enum": ["inline", "side-column", "band", "full-page", "opener", "page-break"] },
+    "color": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+    "font": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["family", "fallbacks", "size_pt", "leading_pt", "weight", "license"],
+      "properties": {
+        "family": { "type": "string", "minLength": 1 },
+        "fallbacks": { "type": "array", "items": { "type": "string" } },
+        "size_pt": { "type": "number", "exclusiveMinimum": 0 },
+        "leading_pt": { "type": "number", "exclusiveMinimum": 0 },
+        "weight": { "type": "integer", "minimum": 100, "maximum": 900 },
+        "style": { "enum": ["normal", "italic"] },
+        "license": { "type": "string", "minLength": 1 }
+      }
+    },
+    "callout_style": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["frame", "background", "icon_size_mm", "label_style"],
+      "properties": {
+        "frame": { "enum": ["none", "rule-left", "rule-top", "box", "hand-drawn"] },
+        "background": { "enum": ["none", "tint", "paper"] },
+        "icon_size_mm": { "type": "number", "minimum": 0 },
+        "label_style": { "enum": ["kicker", "run-in", "stacked"] },
+        "max_width_mm": { "type": ["number", "null"], "minimum": 0 },
+        "font_scale": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    }
+  },
+  "properties": {
+    "$schema": { "type": "string" },
+    "schema_version": { "const": "1.0.0" },
+    "project_id": { "type": "string" },
+    "profile": { "enum": ["friendly-explainer", "textbook", "exam-prep"] },
+    "design_version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "preset": { "enum": ["friendly-explainer", "textbook", "exam-prep"] },
+    "callout_catalog_version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "illustration_setup": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["artifact_id", "sha256"],
+      "properties": {
+        "artifact_id": { "type": "string", "minLength": 1 },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "trim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "width_mm", "height_mm", "bleed_mm"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "width_mm": { "type": "number", "exclusiveMinimum": 0 },
+        "height_mm": { "type": "number", "exclusiveMinimum": 0 },
+        "bleed_mm": { "type": ["number", "null"], "minimum": 0 }
+      }
+    },
+    "page": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["margins_mm", "side_column_mm", "column_gap_mm", "baseline_pt"],
+      "properties": {
+        "margins_mm": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["top", "bottom", "inner", "outer"],
+          "properties": {
+            "top": { "type": "number", "minimum": 0 },
+            "bottom": { "type": "number", "minimum": 0 },
+            "inner": { "type": "number", "minimum": 0 },
+            "outer": { "type": "number", "minimum": 0 }
+          }
+        },
+        "side_column_mm": { "type": "number", "minimum": 0 },
+        "column_gap_mm": { "type": "number", "minimum": 0 },
+        "baseline_pt": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    },
+    "typography": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["body", "headings", "captions", "labels"],
+      "properties": {
+        "body": { "$ref": "#/$defs/font" },
+        "headings": { "$ref": "#/$defs/font" },
+        "captions": { "$ref": "#/$defs/font" },
+        "labels": { "$ref": "#/$defs/font" },
+        "code": { "$ref": "#/$defs/font" }
+      }
+    },
+    "color": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ink", "paper", "accent", "muted", "rule", "callout_accent"],
+      "properties": {
+        "ink": { "$ref": "#/$defs/color" },
+        "paper": { "$ref": "#/$defs/color" },
+        "accent": { "$ref": "#/$defs/color" },
+        "muted": { "$ref": "#/$defs/color" },
+        "rule": { "$ref": "#/$defs/color" },
+        "tint": { "$ref": "#/$defs/color" },
+        "callout_accent": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/color" }
+        }
+      }
+    },
+    "callouts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["inline", "side-column", "band", "full-page", "opener"],
+      "properties": {
+        "inline": { "$ref": "#/$defs/callout_style" },
+        "side-column": { "$ref": "#/$defs/callout_style" },
+        "band": { "$ref": "#/$defs/callout_style" },
+        "full-page": { "$ref": "#/$defs/callout_style" },
+        "opener": { "$ref": "#/$defs/callout_style" }
+      }
+    },
+    "icons": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["format", "source", "directory", "style_note"],
+      "properties": {
+        "format": { "enum": ["svg"] },
+        "source": { "enum": ["bundled", "project"] },
+        "directory": { "type": "string", "minLength": 1 },
+        "style_note": { "type": "string" }
+      }
+    },
+    "chapter_opener": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["style", "elements"],
+      "properties": {
+        "style": { "enum": ["full-page", "half-page", "run-in"] },
+        "elements": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "enum": ["number", "title", "big-idea", "must-know", "objectives", "figure"] }
+        }
+      }
+    },
+    "figures": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["caption_position", "frame", "default_placement"],
+      "properties": {
+        "caption_position": { "enum": ["above", "below"] },
+        "frame": { "enum": ["none", "hairline", "hand-drawn"] },
+        "default_placement": { "enum": ["inline", "side-column", "band", "full-page", "opener", "spread"] },
+        "number_figures": { "type": "boolean" }
+      }
+    },
+    "tables": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["caption_position", "header_rule", "zebra"],
+      "properties": {
+        "caption_position": { "enum": ["above", "below"] },
+        "header_rule": { "type": "boolean" },
+        "zebra": { "type": "boolean" },
+        "font_scale": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    },
+    "running": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["head", "page_numbers"],
+      "properties": {
+        "head": { "enum": ["chapter-title", "book-title", "none"] },
+        "page_numbers": { "enum": ["outer", "center", "none"] }
+      }
+    },
+    "render": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["docx", "epub", "pdf"],
+      "properties": {
+        "docx": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["engine"],
+          "properties": { "engine": { "enum": ["pandoc"] }, "toc": { "type": "boolean" } }
+        },
+        "epub": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["engine"],
+          "properties": { "engine": { "enum": ["pandoc"] }, "split_level": { "type": "integer", "minimum": 1 } }
+        },
+        "pdf": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["engine"],
+          "properties": {
+            "engine": { "enum": ["chromium", "libreoffice"] },
+            "page_media_limitations": { "type": "array", "items": { "type": "string" } }
+          }
+        }
+      }
+    },
+    "degradation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["epub", "docx"],
+      "properties": {
+        "epub": { "type": "object", "additionalProperties": { "$ref": "#/$defs/degraded_placement" } },
+        "docx": { "type": "object", "additionalProperties": { "$ref": "#/$defs/degraded_placement" } },
+        "libreoffice": { "type": "object", "additionalProperties": { "$ref": "#/$defs/degraded_placement" } }
+      }
+    },
+    "publisher_preset": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["name", "source"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "source": { "type": "string", "minLength": 1 },
+        "notes": { "type": "string" }
+      }
+    },
+    "sample_chapter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "locale"],
+      "properties": {
+        "source": { "enum": ["bundled", "chapter"] },
+        "artifact_id": { "type": ["string", "null"] },
+        "locale": { "enum": ["en-US", "id-ID"] }
+      }
+    },
+    "decisions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["decision", "reason"],
+        "properties": {
+          "decision": { "type": "string", "minLength": 1 },
+          "reason": { "type": "string", "minLength": 1 },
+          "decided_by": { "type": "string" }
+        }
+      }
+    },
+    "open_questions": { "type": "array", "items": { "type": "string" } }
+  }
+}
