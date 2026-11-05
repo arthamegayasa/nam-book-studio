@@ -54,9 +54,32 @@ Placement is a hint about where the body sits on a fixed page. Reflowable format
 
 ## Reflection prompts and quick checks
 
-- `reflect` asks an open, unscored question tied to an objective. It has no key and no `item`. `reveal=none` is the default; `reveal=chapter-end` means a *discussion*, not an answer, appears in that chapter's `answer-key`.
-- `quick-check` places a retrieval prompt. The stem is written in the body; the key and rationales stay in `items.{locale}.yaml`, linked by `item=`. `reveal` defaults per mode (`friendly-explainer`: `inline`; `textbook` and `exam-prep`: `chapter-end`) and must be one of `inline`, `chapter-end`, `book-end`.
-- `answer-key` collects the keys that `chapter-end` or `book-end` point to. Every chapter with a `chapter-end` quick check needs an `answer-key` with `for=` that chapter; a book with a `book-end` quick check needs `for=book` in the book manuscript. The integration edit places the keys; this contract defines the slot.
+- `reflect` asks an open, unscored question tied to an objective. It has no key and no `item`. `reveal=none` is the default; `reveal=chapter-end` means a *discussion*, not an answer, appears in that chapter's `answer-key`, keyed by the reflection's `callout_id`.
+- `quick-check` places a retrieval prompt. The stem is written in the body, adapted to the chapter's voice; the key and rationales stay in `items.{locale}.yaml`, linked by `item=`. `reveal` defaults per mode (`friendly-explainer`: `inline`; `textbook` and `exam-prep`: `chapter-end`) and must be one of `inline`, `chapter-end`, `book-end`.
+- `answer-key` collects the keys that `chapter-end` or `book-end` point to. Every chapter with a `chapter-end` quick check or reflection needs an `answer-key` with `for=` that chapter; a book with a `book-end` quick check needs `for=book` in the book manuscript. The integration edit places the keys; this contract defines the slot and the entry format below.
+
+### Item bank join
+
+The assessment item bank (`items.{locale}.yaml`, written by `nam-book-assess`) is the source of record for every stem, key, and rationale. `item_id` is the join key:
+
+- `nam-book-teach` places a quick check with `item=` and never writes a key into the chapter.
+- `nam-book-edit` fills the `answer-key` entries from the bank during the integration pass.
+- `nam-book-localize` keeps every `item=` unchanged and is checked against the bank for the target locale (`items.id-ID.yaml` for an Indonesian edition).
+- One item is placed once; a second quick check for the same `item_id` is a warning.
+
+### Answer-key entries
+
+The body of an `answer-key` is a list. Each entry starts with the ID it answers, then a colon, then the key and a one-line rationale (or the discussion for a reflection). Indented lines continue the previous entry.
+
+```markdown
+::: {#callout-ch03-14 .callout type=answer-key for=ch-03}
+- item-ch03-001: B. Yeast needs sugar as food; salt only slows it.
+- item-ch03-002: Water above 45 °C kills yeast; the dough stays flat.
+- callout-ch03-07: Most bakers change the water temperature first, because it acts on the yeast directly.
+:::
+```
+
+Lines that do not start with an ID are a warning: the inspector cannot tell which prompt they answer. The displayed heading and any per-entry numbering come from the design spec, not from the body.
 
 ## Who writes callouts
 
@@ -78,7 +101,8 @@ Run the deterministic helper before handing a manuscript to AskNam:
 python skills/nam-book-teach/scripts/inspect_callouts.py \
   --manuscript .nam-book/artifacts/chapters/ch-03/enriched.id-ID.md \
   --mode friendly-explainer --locale id-ID --chapter-id ch-03 --density high \
-  --architecture .nam-book/artifacts/architecture/book-architecture.json
+  --architecture .nam-book/artifacts/architecture/book-architecture.json \
+  --items .nam-book/artifacts/assessment/items.id-ID.yaml
 ```
 
-Errors (unknown or disallowed type, bad or duplicate ID, disallowed placement, missing objective, missing `item` or `reveal`, missing `answer-key` target, nesting, empty body) make the manuscript unfit for registration. Add `--print-ids` to list the callout IDs for AskNam's `register-artifact --callout-id` flags. `chapter_draft`, `enriched_draft`, `edited_manuscript`, and `localized_manuscript` entries carry `callout_ids`; AskNam warns when a localized edition omits an ID present in its source.
+Errors (unknown or disallowed type, bad or duplicate ID, disallowed placement, missing objective, missing `item` or `reveal`, missing `answer-key` target, a `chapter-end` or `book-end` item or reflection without its `answer-key` entry, nesting, empty body) make the manuscript unfit for registration. With `--items` (repeatable; YAML or JSON, scanned line by line for `item_id:`), a quick check whose `item=` is not in the bank is also an error. Warnings cover an item placed twice, an `answer-key` entry nothing points to, answer-key lines that are not keyed entries, and a `book-end` quick check inspected at chapter scope (its key lives in the book manuscript). Add `--print-ids` to list the callout IDs for AskNam's `register-artifact --callout-id` flags. `chapter_draft`, `enriched_draft`, `edited_manuscript`, and `localized_manuscript` entries carry `callout_ids`; AskNam warns when a localized edition omits an ID present in its source.

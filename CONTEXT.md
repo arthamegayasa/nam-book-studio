@@ -35,11 +35,19 @@ An unscored callout type that asks the reader an open question tied to an object
 _Avoid_: reflection question, discussion box, open item, think box
 
 **Quick check**:
-A callout type that places a retrieval prompt in the chapter. The stem lives in the manuscript; the key and rationale live in the linked assessment item.
+A callout type that places a retrieval prompt in the chapter. The stem lives in the manuscript; the key and rationale live in the linked assessment item, joined by its `item_id`. One item is placed once.
 _Avoid_: self-check, mini quiz, practice question (as type names)
 
+**Item bank**:
+The assessment skill's `items.{locale}.yaml`: the source of record for every item's stem, key, and rationales, one per locale with the same `item_id` values. The manuscript only points into it.
+_Avoid_: question bank, quiz file, key file
+
+**Answer key**:
+The `answer-key` callout that collects what `chapter-end` or `book-end` prompts point to, one list entry per ID (`- item-ch03-001: ...`, `- callout-ch03-07: ...`), copied from the item bank by the integration edit.
+_Avoid_: solutions, answers section, key box
+
 **Reveal rule**:
-Where a quick check's answer, or a reflection prompt's discussion, appears relative to the prompt: `none`, `inline`, `chapter-end`, or `book-end`.
+Where a quick check's answer, or a reflection prompt's discussion, appears relative to the prompt: `none`, `inline`, `chapter-end`, or `book-end`. A `chapter-end` or `book-end` rule must be matched by an answer-key entry.
 _Avoid_: answer policy, key location
 
 **Semantic block**:

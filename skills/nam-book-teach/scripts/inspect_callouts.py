@@ -8,9 +8,19 @@ A callout is a Pandoc fenced div carrying the ``.callout`` class::
     :::
 
 The inspector checks structure only: catalog membership, IDs, placements,
-objective links, reveal rules, item links, answer-key targets, nesting, and
-density. It never judges whether a callout teaches well. Errors make the
-manuscript unfit for registration; warnings need editorial judgment.
+objective links, reveal rules, item links, answer-key targets and entries,
+nesting, and density. It never judges whether a callout teaches well. Errors
+make the manuscript unfit for registration; warnings need editorial judgment.
+
+Quick checks join the assessment item bank through ``item=``. Pass the bank
+with ``--items items.<locale>.yaml`` (repeatable; YAML or JSON) and every
+``item=`` must name an ``item_id`` found there. The bank is scanned line by
+line for ``item_id: <id>`` or ``"item_id": "<id>"``; no YAML parser is needed.
+
+An ``answer-key`` body is a list whose entries start with the ID they answer::
+
+    - item-ch01-001: B. One-line rationale.
+    - callout-ch01-04: The discussion a chapter-end reflection points to.
 """
 
 from __future__ import annotations
@@ -20,7 +30,7 @@ import json
 import re
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterable
 
 MODES = ("friendly-explainer", "textbook", "exam-prep")
 LOCALES = ("en-US", "id-ID")
@@ -35,6 +45,12 @@ ATTRIBUTE_RE = re.compile(
 WORD_RE = re.compile(r"\w+", re.UNICODE)
 FOR_RE = re.compile(r"^(?:ch-[0-9]{2,}|book)$")
 ITEM_RE = re.compile(r"^item-[a-z0-9][a-z0-9-]*$")
+# One answer-key entry: a list marker, the item or callout ID (optionally bold), a colon, the key text.
+ANSWER_KEY_ENTRY_RE = re.compile(
+    r"^\s*(?:[-*+]|\d+[.)])\s+(?:\*\*)?(?P<id>(?:item|callout)-[A-Za-z0-9][\w-]*)(?:\*\*)?\s*:\s*(?P<text>.*)$"
+)
+# ``item_id: item-ch01-001`` in YAML or ``"item_id": "item-ch01-001"`` in JSON, anywhere on a line.
+ITEM_ID_LINE_RE = re.compile(r"""(?:^|[\s{,\[-])["']?item_id["']?\s*:\s*["']?(?P<id>[A-Za-z0-9][\w.-]*)""")
 
 
 def default_catalog_path() -> Path:
@@ -163,6 +179,52 @@ def chapter_from_callout_id(callout_id: str | None) -> str | None:
     return "ch-" + parts[1][2:]
 
 
+def load_item_ids(paths: Iterable[Path]) -> set[str]:
+    """Collect every ``item_id`` declared in the given item-bank files (YAML or JSON).
+
+    The scan is line-based and needs no YAML parser: any ``item_id: <id>`` or
+    ``"item_id": "<id>"`` occurrence counts. Unreadable files raise ``OSError``.
+    """
+    item_ids: set[str] = set()
+    for path in paths:
+        text = Path(path).read_text(encoding="utf-8")
+        for line in text.splitlines():
+            for match in ITEM_ID_LINE_RE.finditer(line):
+                item_ids.add(match.group("id"))
+    return item_ids
+
+
+def parse_answer_key(body: Iterable[str] | str) -> tuple[dict[str, str], list[str]]:
+    """Return the keyed entries of an answer-key body and the non-empty lines that are not entries.
+
+    An entry starts with a list marker and the ID it answers (``- item-ch01-001: ...`` or
+    ``- callout-ch01-04: ...``); indented lines continue the previous entry.
+    """
+    lines = body.splitlines() if isinstance(body, str) else list(body)
+    entries: dict[str, str] = {}
+    unkeyed: list[str] = []
+    current: str | None = None
+    for line in lines:
+        if not line.strip():
+            current = None
+            continue
+        match = ANSWER_KEY_ENTRY_RE.match(line)
+        if match:
+            current = match.group("id")
+            entries[current] = match.group("text").strip()
+        elif current is not None and line[:1].isspace():
+            entries[current] = (entries[current] + " " + line.strip()).strip()
+        else:
+            current = None
+            unkeyed.append(line.strip())
+    return entries, unkeyed
+
+
+def answer_key_entries(body: Iterable[str] | str) -> dict[str, str]:
+    """Map each ID an answer-key body answers to its key or discussion text."""
+    return parse_answer_key(body)[0]
+
+
 def inspect_manuscript(
     text: str,
     *,
@@ -172,6 +234,7 @@ def inspect_manuscript(
     chapter_id: str | None = None,
     density: str | None = None,
     architecture: dict[str, Any] | None = None,
+    item_ids: set[str] | None = None,
 ) -> dict[str, Any]:
     errors: list[str] = []
     warnings: list[str] = []
@@ -196,7 +259,9 @@ def inspect_manuscript(
     opener_counts: dict[str, int] = {}
     chapter_end_chapters: set[str] = set()
     book_end_needed = False
-    answer_keys: set[str] = set()
+    answer_keys: dict[str, dict[str, str]] = {}
+    quick_checks: list[dict[str, str]] = []
+    chapter_end_reflections: list[tuple[str, str]] = []
 
     for block in blocks:
         if block["kind"] == "prose":
@@ -280,10 +345,18 @@ def inspect_manuscript(
                 elif effective not in reveal_rules:
                     errors.append(f"Callout {label_id} reveal {effective} is not allowed for type {type_id}; use {reveal_rules}")
                 record["reveal"] = effective
+                own_chapter = chapter_from_callout_id(callout_id) or chapter_id or "<unknown>"
                 if type_id == "quick-check" and effective == "chapter-end":
-                    chapter_end_chapters.add(chapter_from_callout_id(callout_id) or chapter_id or "<unknown>")
+                    chapter_end_chapters.add(own_chapter)
                 if type_id == "quick-check" and effective == "book-end":
                     book_end_needed = True
+                if type_id == "quick-check" and item and ITEM_RE.match(item):
+                    quick_checks.append(
+                        {"callout_id": label_id, "item": item, "reveal": str(effective), "chapter": own_chapter}
+                    )
+                if type_id == "reflect" and effective == "chapter-end":
+                    chapter_end_chapters.add(own_chapter)
+                    chapter_end_reflections.append((label_id, own_chapter))
             elif reveal:
                 errors.append(f"Callout {label_id} type {type_id} does not take reveal")
 
@@ -292,7 +365,14 @@ def inspect_manuscript(
                 if not target or not FOR_RE.match(target):
                     errors.append(f"Callout {label_id} type {type_id} requires for=ch-NN or for=book")
                 else:
-                    answer_keys.add(target)
+                    entries, unkeyed = parse_answer_key(block["body"])
+                    answer_keys.setdefault(target, {}).update(entries)
+                    record["entries"] = sorted(entries)
+                    if unkeyed:
+                        warnings.append(
+                            f"Answer-key {label_id} has {len(unkeyed)} line(s) that are not keyed entries; "
+                            "write each key as '- item-chNN-NNN: ...' or '- callout-chNN-NN: ...'"
+                        )
             elif target:
                 errors.append(f"Callout {label_id} type {type_id} does not take for=")
 
@@ -318,10 +398,56 @@ def inspect_manuscript(
     for chapter in sorted(chapter_end_chapters):
         if chapter not in answer_keys:
             errors.append(
-                f"Quick checks in {chapter} reveal at chapter-end but no answer-key with for={chapter} exists"
+                f"Quick checks or reflections in {chapter} reveal at chapter-end "
+                f"but no answer-key with for={chapter} exists"
             )
     if book_end_needed and chapter_id is None and "book" not in answer_keys:
         errors.append("Quick checks reveal at book-end but no answer-key with for=book exists in the book manuscript")
+
+    referenced: dict[str, set[str]] = {}
+    placements_by_item: dict[str, list[str]] = {}
+    for check in quick_checks:
+        check_id, item = check["callout_id"], check["item"]
+        placements_by_item.setdefault(item, []).append(check_id)
+        if item_ids is not None and item not in item_ids:
+            errors.append(f"Quick check {check_id} item {item} is not in the assessment bank")
+        if check["reveal"] == "chapter-end":
+            target = check["chapter"]
+            referenced.setdefault(target, set()).add(item)
+            if target in answer_keys and item not in answer_keys[target]:
+                errors.append(
+                    f"Quick check {check_id} reveals at chapter-end but answer-key for={target} has no entry for {item}"
+                )
+        elif check["reveal"] == "book-end":
+            if chapter_id is None:
+                referenced.setdefault("book", set()).add(item)
+                if "book" in answer_keys and item not in answer_keys["book"]:
+                    errors.append(
+                        f"Quick check {check_id} reveals at book-end but answer-key for=book has no entry for {item}"
+                    )
+            else:
+                warnings.append(
+                    f"Quick check {check_id} reveals at book-end; its key belongs to the for=book answer-key "
+                    "outside this chapter manuscript"
+                )
+    for reflection_id, chapter in chapter_end_reflections:
+        referenced.setdefault(chapter, set()).add(reflection_id)
+        if chapter in answer_keys and reflection_id not in answer_keys[chapter]:
+            errors.append(
+                f"Reflection {reflection_id} reveals at chapter-end but answer-key for={chapter} "
+                f"has no discussion entry for {reflection_id}"
+            )
+    for item, placed_by in sorted(placements_by_item.items()):
+        if len(placed_by) > 1:
+            warnings.append(f"Item {item} is placed by quick checks {', '.join(placed_by)}; place each item once")
+    for target, entries in sorted(answer_keys.items()):
+        if target == "book" and chapter_id is not None:
+            continue
+        for entry_id in sorted(entries):
+            if entry_id not in referenced.get(target, set()):
+                warnings.append(
+                    f"Answer-key for={target} entry {entry_id} has no quick check or reflection pointing to it"
+                )
     for chapter, count in sorted(opener_counts.items()):
         if count > 1:
             warnings.append(f"Chapter {chapter} has {count} opener callouts; at most one is expected")
@@ -351,6 +477,7 @@ def inspect_manuscript(
         "callout_ids": [item["callout_id"] for item in callouts if item["callout_id"]],
         "callouts": callouts,
         "counts": {"callouts": len(callouts), "prose_words": prose_words, "by_type": by_type},
+        "item_bank": None if item_ids is None else {"paths": [], "item_count": len(item_ids)},
     }
 
 
@@ -367,6 +494,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--chapter-id", help="Chapter scope; omit for a whole-book manuscript")
     parser.add_argument("--density", choices=DENSITIES, help="Project visual_density used as the callout ceiling")
     parser.add_argument("--architecture", type=Path, help="book-architecture.json for objective cross-checks")
+    parser.add_argument(
+        "--items", type=Path, action="append", default=None, metavar="PATH",
+        help="Assessment item bank (items.<locale>.yaml or JSON); repeatable. Every quick-check item= must exist in it.",
+    )
     parser.add_argument("--catalog", type=Path, default=default_catalog_path())
     parser.add_argument("--print-ids", action="store_true", help="Print callout IDs one per line instead of JSON")
     args = parser.parse_args(argv)
@@ -374,14 +505,17 @@ def main(argv: list[str] | None = None) -> int:
     try:
         catalog = load_json(args.catalog)
         architecture = load_json(args.architecture) if args.architecture else None
+        item_ids = load_item_ids(args.items) if args.items else None
         text = args.manuscript.read_text(encoding="utf-8")
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         print(json.dumps({"status": "fail", "errors": [str(exc)], "warnings": []}, indent=2))
         return 1
     report = inspect_manuscript(
         text, mode=args.mode, locale=args.locale, catalog=catalog, chapter_id=args.chapter_id,
-        density=args.density, architecture=architecture,
+        density=args.density, architecture=architecture, item_ids=item_ids,
     )
+    if report["item_bank"] is not None:
+        report["item_bank"]["paths"] = [str(path) for path in args.items]
     if args.print_ids:
         for callout_id in report["callout_ids"]:
             print(callout_id)

@@ -19,9 +19,9 @@ The draft must already be factually usable. Route missing evidence to `$nam-book
 2. Create a teaching plan. Give each proposed enhancement a stable ID, source block, objective ID, purpose, mode fit, and insertion point.
 3. Select the smallest pattern that addresses each problem. Read [references/pedagogy-patterns.md](references/pedagogy-patterns.md) and use only the active mode's branch.
 4. Integrate the selected enhancements into an enriched draft while preserving claim meaning, citations, and semantic block IDs. Write every callout, reflection prompt, and quick check in the form defined by [references/callout-contract.md](references/callout-contract.md); the catalog decides which types the active mode allows. New facts require evidence; new factual claims are not an instructional device.
-5. Coordinate visual opportunities through `figure_id` requests for `$nam-book-visuals`. Coordinate scored questions through `$nam-book-assess`.
+5. Coordinate visual opportunities through `figure_id` requests for `$nam-book-visuals`. Coordinate scored questions through `$nam-book-assess`: a quick check places a bank item's stem with `item=` and never carries a key; the key and rationale stay in `items.{locale}.yaml`, and the integration edit fills the `answer-key` from the bank.
 6. Re-read the chapter as a learner. Remove redundant callouts, decorative mnemonics, repeated summaries, and analogies whose limitations outweigh their value.
-7. Run `scripts/inspect_callouts.py` on the enriched draft with the project's mode, locale, chapter, density, and architecture. Fix every error; weigh every warning. Pass its `--print-ids` output to AskNam for registration.
+7. Run `scripts/inspect_callouts.py` on the enriched draft with the project's mode, locale, chapter, density, architecture, and `--items items.<locale>.yaml` so every `item=` resolves in the bank. Fix every error; weigh every warning. Pass its `--print-ids` output to AskNam for registration.
 
 ## Invariants
 

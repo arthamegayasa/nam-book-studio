@@ -126,5 +126,5 @@ A dough made from rice flour and instant yeast is left in a warm kitchen for two
 Yeast turns sugar into gas, gluten traps it, and temperature sets the pace. Judge a rise by size and texture, not by the clock, and when something goes wrong check the water temperature first.
 
 ::: {#callout-ch01-22 .callout type=answer-key for=ch-01}
-**item-ch01-001.** The gas trap. Rice flour has no gluten-forming proteins, so the yeast produces gas that escapes instead of being held.
+- item-ch01-001: The gas trap. Rice flour has no gluten-forming proteins, so the yeast produces gas that escapes instead of being held.
 :::
