@@ -19,7 +19,7 @@ Placement tokens are hints from the callout contract. The spec's `degradation` m
 
 ## Sample chapter
 
-`assets/sample-chapter/` holds an original, non-medical chapter in `en-US` and `id-ID` that uses every catalog type, a figure placeholder, a table, a quick check with its answer key, and a chapter opener. `render_sample.py` keeps only the types the active mode allows, renders the requested formats, runs the publish skill's `inspect_deliverable.py` on each file, and writes `report.json`:
+`assets/sample-chapter/` holds an original, non-medical chapter in `en-US` and `id-ID` that uses every catalog type, a figure placeholder, a table, a quick check with its answer key, and a chapter opener. `render_sample.py` keeps only the types the active mode allows, renders the requested formats, runs the publish skill's `inspect_deliverable.py` on each file in its default proof mode (hollow files fail; the release-only `--strict` promotions do not apply to a design proof), and writes `report.json`:
 
 ```json
 {

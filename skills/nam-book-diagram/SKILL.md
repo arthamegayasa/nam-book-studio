@@ -19,7 +19,7 @@ Exact numbers, units, anatomy, clinical pathways, thresholds, and causal arrows 
 2. Choose one dominant structure: process, hierarchy, comparison, timeline, cycle, spatial map, mechanism, or decision path. Split dense content rather than shrinking type below the target format's readable size.
 3. Draw connectors before nodes, group related elements semantically, use stable element IDs, and encode meaning with labels or shapes as well as color. Typeset exact labels in SVG; do not ask an image model to spell them.
 4. Follow [references/svg-production.md](references/svg-production.md). Apply the approved hand-drawn contour, shape, texture, and palette decisions without distorting exact relationships or text. A mascot appears only when the approved brief requests one and follows the selected project bible; Nam is not a universal diagram decoration. Start from `assets/diagram-template.svg` when useful, while replacing all example content and accessibility text.
-5. Validate the SVG with `scripts/validate_svg.py`, then render it at final size and visually inspect clipping, overlaps, arrow direction, line weight, grayscale distinction, caption agreement, and reading order.
+5. Validate the SVG with `scripts/validate_svg.py` (a DOCTYPE or ENTITY declaration fails before the file is parsed), then render it at final size and visually inspect clipping, overlaps, arrow direction, line weight, grayscale distinction, caption agreement, and reading order.
 6. Recheck every factual element against its claim/source mapping. Localized diagrams keep the same `figure_id` and element IDs while storing locale as a distinct artifact revision.
 
 ## Outputs

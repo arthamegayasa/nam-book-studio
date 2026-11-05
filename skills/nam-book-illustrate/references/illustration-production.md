@@ -46,7 +46,7 @@ Examples:
 - 5-inch placement at 300 PPI requires at least 1500 pixels across.
 - 120 mm placement is approximately 4.724 inches and requires at least 1418 pixels across at 300 PPI.
 
-Do not upscale a small image and report the new pixel count as recovered detail. Record any resampling. Use `scripts/inspect_png.py` to verify structure and calculate effective PPI.
+Do not upscale a small image and report the new pixel count as recovered detail. Record any resampling. Use `scripts/inspect_png.py --placed-width-in <inches>` (and `--placed-height-in` when both dimensions are constrained) to verify structure and calculate effective PPI against `--min-ppi` (default 300). Without a placed size the script reports `ppi_check: not-checked` and no target rather than a resolution verdict; production gates add `--require-placed-size` so a missing size fails instead of passing silently.
 
 Keep important content inside the live area. Extend only expendable background into bleed. Test left- and right-hand placements when the binding edge matters.
 

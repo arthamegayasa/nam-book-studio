@@ -17,6 +17,7 @@ Keep cover and interior separate when the printer requests separate files. PDF/X
 - Place images at sufficient effective PPI and use the printer's color profile. Do not infer CMYK correctness from appearance on screen.
 - Generate bookmarks and a linked TOC for digital editions when requested.
 - Resolve comments, tracked changes, hidden layers, annotations, form fields, and metadata according to the approved release policy.
+- A Chromium-family browser (`render.pdf.engine: chromium`) prints a PDF without a bookmark outline or an XMP metadata stream, and older browser builds also omit tag structure and the language marker, so `inspect_deliverable.py --strict` fails it by design. When a release needs those markers, build with `render.pdf.engine: libreoffice` or another engine that writes them, or record the limitation in the publish report rather than relaxing the check.
 
 ## Verification
 

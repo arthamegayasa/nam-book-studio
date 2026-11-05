@@ -17,6 +17,7 @@ from pathlib import Path
 
 
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
+DEFAULT_MIN_PPI = 300.0
 COLOR_TYPES = {
     0: "grayscale",
     2: "rgb",
@@ -157,7 +158,17 @@ def main() -> int:
     parser.add_argument("png", type=Path)
     parser.add_argument("--placed-width-in", type=positive_float)
     parser.add_argument("--placed-height-in", type=positive_float)
-    parser.add_argument("--min-ppi", type=positive_float, default=300.0)
+    parser.add_argument(
+        "--min-ppi",
+        type=positive_float,
+        default=None,
+        help=f"Minimum effective PPI, applied only when a placed size is supplied (default {DEFAULT_MIN_PPI:g})",
+    )
+    parser.add_argument(
+        "--require-placed-size",
+        action="store_true",
+        help="Fail when no placed size is supplied, so a production gate cannot skip the PPI check",
+    )
     parser.add_argument(
         "--expect-alpha", choices=("any", "required", "forbidden"), default="any"
     )
@@ -175,18 +186,29 @@ def main() -> int:
     if isinstance(height, int) and args.placed_height_in:
         effective["y"] = round(height / args.placed_height_in, 2)
     if effective:
+        target = args.min_ppi or DEFAULT_MIN_PPI
         report["placed_size_in"] = {
             "width": args.placed_width_in,
             "height": args.placed_height_in,
         }
         report["effective_ppi"] = effective
-        if min(effective.values()) < args.min_ppi:
+        report["minimum_ppi_target"] = target
+        report["ppi_check"] = "checked"
+        if min(effective.values()) < target:
             errors.append(
-                f"effective PPI {min(effective.values()):.2f} is below target {args.min_ppi:.2f}"
+                f"effective PPI {min(effective.values()):.2f} is below target {target:.2f}"
             )
     else:
+        # No verdict without a placed size: a target the script never compared
+        # against must not appear beside "pass".
         report["effective_ppi"] = None
-        warnings.append("effective PPI was not checked because no placed size was supplied")
+        report["minimum_ppi_target"] = None
+        report["ppi_check"] = "not-checked"
+        message = "effective PPI was not checked because no placed size was supplied"
+        if args.require_placed_size:
+            errors.append(f"{message}; pass --placed-width-in or --placed-height-in")
+        else:
+            warnings.append(message)
 
     alpha = report.get("alpha_channel_or_trns")
     if args.expect_alpha == "required" and alpha is not True:
@@ -194,7 +216,6 @@ def main() -> int:
     if args.expect_alpha == "forbidden" and alpha is True:
         errors.append("alpha is forbidden for this target")
 
-    report["minimum_ppi_target"] = args.min_ppi
     report["status"] = "fail" if errors else "pass"
     print(json.dumps(report, indent=2, sort_keys=True))
     return 1 if errors else 0
