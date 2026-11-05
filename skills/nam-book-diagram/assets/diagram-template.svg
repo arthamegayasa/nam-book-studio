@@ -6,17 +6,23 @@
   <title id="diagram-title">Three-stage teaching process template</title>
   <desc id="diagram-description">A left-to-right example showing an input connected to a process and then to an outcome. Replace every example label and accessibility description for the actual figure.</desc>
   <style>
+    /* Token sources: design_spec.typography.labels (label font family and weight),
+       design_spec.color (paper, ink, muted, accent, tint) and
+       illustration_setup.visual_tokens.palette (role overrides: ink, paper, accent,
+       muted, neutral, process, outcome). The values below are neutral fallbacks;
+       run scripts/apply_tokens.py to write the project's tokens into this block. */
     .canvas { fill: #ffffff; }
-    .node { stroke: #27303f; stroke-width: 3; }
-    .input { fill: #dbeafe; }
-    .process { fill: #fef3c7; }
-    .outcome { fill: #dcfce7; }
-    .edge { fill: none; stroke: #4b5563; stroke-width: 4; marker-end: url(#arrowhead); }
-    .label { fill: #111827; font: 600 28px Arial, sans-serif; text-anchor: middle; }
+    .node { stroke: #333333; stroke-width: 3; }
+    .input { fill: #eeeeee; }
+    .process { fill: #d9d9d9; }
+    .outcome { fill: #bfbfbf; }
+    .edge { fill: none; stroke: #666666; stroke-width: 4; marker-end: url(#arrowhead); }
+    .arrowhead { fill: #666666; }
+    .label { fill: #333333; font-family: sans-serif; font-size: 28px; font-weight: 600; text-anchor: middle; }
   </style>
   <defs>
     <marker id="arrowhead" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
-      <path id="arrowhead-path" d="M 0 0 L 10 5 L 0 10 z" fill="#4b5563"/>
+      <path id="arrowhead-path" class="arrowhead" d="M 0 0 L 10 5 L 0 10 z"/>
     </marker>
   </defs>
   <rect id="background" class="canvas" x="0" y="0" width="1200" height="675"/>
