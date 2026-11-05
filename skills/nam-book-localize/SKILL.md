@@ -18,7 +18,7 @@ Localization begins after the source artifact is content-locked. A source change
 1. Inventory semantic blocks and classify each as translate, locale-adapt, retain, or recreate-with-review.
 2. Resolve terminology, form of address, English variant, acronym handling, and numeric/date conventions before bulk translation. Store those decisions in the localization report's terminology ledger. Read [references/en-id-localization.md](references/en-id-localization.md) for either English-to-Indonesian or Indonesian-to-English work.
 3. Translate by block, retaining IDs, citations, quotations, equations, evidence status, warnings, uncertainty, and cross-references.
-4. Translate callout bodies and `title` attributes, captions, alt text, glossary entries, metadata, and figure label manifests. Callout labels come from the catalog for the target locale, so keep every `callout_id`, type, and attribute unchanged. Do not destructively edit source artwork.
+4. Translate callout bodies and `title` attributes, captions, alt text, glossary entries, metadata, and figure label manifests. Callout labels come from the catalog for the target locale, so keep every `callout_id`, type, and attribute unchanged, including `item=`; the localized manuscript is inspected against `items.<target locale>.yaml`, so localize the bank before the chapters that place its items. Do not destructively edit source artwork.
 5. Revalidate each localized assessment item: the key must remain uniquely correct and distractors must remain plausible without new linguistic clues.
 6. Run the semantic parity review in [references/parity-review.md](references/parity-review.md). Route changed high-stakes meaning to research and expert review.
 

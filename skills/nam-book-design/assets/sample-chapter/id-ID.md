@@ -126,5 +126,5 @@ Adonan dari tepung beras dan ragi instan dibiarkan di dapur yang hangat selama d
 Ragi mengubah gula menjadi gas, gluten memerangkapnya, dan suhu menentukan kecepatannya. Nilailah pengembangan dari ukuran dan tekstur, bukan dari jam, dan ketika ada yang salah, periksa suhu air lebih dulu.
 
 ::: {#callout-ch01-22 .callout type=answer-key for=ch-01}
-**item-ch01-001.** Perangkap gas. Tepung beras tidak memiliki protein pembentuk gluten, sehingga gas yang dihasilkan ragi lolos alih-alih tertahan.
+- item-ch01-001: Perangkap gas. Tepung beras tidak memiliki protein pembentuk gluten, sehingga gas yang dihasilkan ragi lolos alih-alih tertahan.
 :::

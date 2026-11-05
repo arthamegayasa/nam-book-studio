@@ -58,9 +58,12 @@ def friendly_chapter() -> str:
             callout("callout-ch01-05", "quick-check", "Apa fungsi gula bagi ragi?",
                     item="item-ch01-001", reveal="chapter-end", objective="obj-ch01-01"),
             prose(50),
-            "::: {#callout-ch01-06 .callout type=answer-key for=ch-01}\n:::",
+            "::: {#callout-ch01-06 .callout type=answer-key for=ch-01}\n- item-ch01-001: Gula adalah makanan ragi.\n:::",
         ]
     )
+
+
+ANSWER_KEY_ENTRY = "- item-ch01-001: Gula adalah makanan ragi."
 
 
 class CalloutCatalogTests(unittest.TestCase):
@@ -208,12 +211,135 @@ class InspectCalloutsTests(unittest.TestCase):
         chapter = FRONT_MATTER + prose(400) + "\n\n" + callout(
             "callout-ch01-01", "quick-check", item="item-ch01-001", reveal="book-end", objective="obj-ch01-01"
         )
-        self.assertEqual(self.inspect(chapter)["errors"], [])
+        chapter_report = self.inspect(chapter)
+        self.assertEqual(chapter_report["errors"], [])
+        self.assertTrue(
+            any("book-end" in item and "outside this chapter" in item for item in chapter_report["warnings"]),
+            chapter_report["warnings"],
+        )
         book = chapter.replace(FRONT_MATTER, "")
         report = self.inspect(book, chapter_id=None)
         self.assertTrue(any("for=book" in error for error in report["errors"]), report["errors"])
-        book_with_key = book + "\n\n::: {#callout-ch01-02 .callout type=answer-key for=book}\n:::"
+        book_with_key = book + "\n\n::: {#callout-ch01-02 .callout type=answer-key for=book}\n- item-ch01-001: Jawaban.\n:::"
         self.assertEqual(self.inspect(book_with_key, chapter_id=None)["errors"], [])
+        empty_key = book + "\n\n::: {#callout-ch01-02 .callout type=answer-key for=book}\n:::"
+        report = self.inspect(empty_key, chapter_id=None)
+        self.assertTrue(
+            any("for=book has no entry for item-ch01-001" in error for error in report["errors"]), report["errors"]
+        )
+
+    def test_answer_key_entries_parse_ids_bold_and_continuations(self) -> None:
+        body = [
+            "- item-ch01-001: B. Gula adalah makanan ragi.",
+            "  Lanjutan pada baris kedua.",
+            "* **item-ch01-002**: A. Air hangat.",
+            "1. callout-ch01-04: Diskusi singkat.",
+            "",
+            "Kalimat tanpa ID.",
+        ]
+        entries = INSPECTOR.answer_key_entries(body)
+        self.assertEqual(set(entries), {"item-ch01-001", "item-ch01-002", "callout-ch01-04"})
+        self.assertEqual(entries["item-ch01-001"], "B. Gula adalah makanan ragi. Lanjutan pada baris kedua.")
+        self.assertEqual(entries["item-ch01-002"], "A. Air hangat.")
+        self.assertEqual(entries["callout-ch01-04"], "Diskusi singkat.")
+        self.assertEqual(INSPECTOR.answer_key_entries("\n".join(body)), entries)
+        text = friendly_chapter().replace(ANSWER_KEY_ENTRY, ANSWER_KEY_ENTRY + "\nKalimat tanpa ID.")
+        report = self.inspect(text)
+        self.assertEqual(report["errors"], [])
+        self.assertTrue(any("not keyed entries" in item for item in report["warnings"]), report["warnings"])
+
+    def test_chapter_end_item_must_have_an_answer_key_entry(self) -> None:
+        text = friendly_chapter().replace(ANSWER_KEY_ENTRY + "\n", "")
+        report = self.inspect(text)
+        self.assertEqual(report["status"], "fail")
+        self.assertTrue(
+            any("chapter-end" in error and "for=ch-01 has no entry for item-ch01-001" in error for error in report["errors"]),
+            report["errors"],
+        )
+
+    def test_chapter_end_reflection_needs_a_discussion_entry(self) -> None:
+        text = friendly_chapter().replace(
+            "type=reflect objective=obj-ch01-02}", "type=reflect reveal=chapter-end objective=obj-ch01-02}"
+        )
+        report = self.inspect(text)
+        self.assertTrue(
+            any("for=ch-01 has no discussion entry for callout-ch01-04" in error for error in report["errors"]),
+            report["errors"],
+        )
+        with_discussion = text.replace(
+            ANSWER_KEY_ENTRY, ANSWER_KEY_ENTRY + "\n- callout-ch01-04: Suhu air biasanya paling berpengaruh."
+        )
+        report = self.inspect(with_discussion)
+        self.assertEqual(report["errors"], [])
+        self.assertEqual(report["warnings"], [])
+        by_id = {item["callout_id"]: item for item in report["callouts"]}
+        self.assertEqual(by_id["callout-ch01-06"]["entries"], ["callout-ch01-04", "item-ch01-001"])
+
+    def test_duplicate_item_placement_warns(self) -> None:
+        text = friendly_chapter() + "\n\n" + prose(300) + "\n\n" + callout(
+            "callout-ch01-07", "quick-check", "Sekali lagi?", item="item-ch01-001", reveal="inline",
+            objective="obj-ch01-01",
+        )
+        report = self.inspect(text)
+        self.assertEqual(report["errors"], [])
+        self.assertTrue(
+            any("item-ch01-001 is placed by quick checks callout-ch01-05, callout-ch01-07" in item
+                for item in report["warnings"]),
+            report["warnings"],
+        )
+
+    def test_orphan_answer_key_entry_warns(self) -> None:
+        text = friendly_chapter().replace(
+            ANSWER_KEY_ENTRY, ANSWER_KEY_ENTRY + "\n- item-ch01-009: Tidak ada yang menunjuk ke sini."
+        )
+        report = self.inspect(text)
+        self.assertEqual(report["errors"], [])
+        self.assertTrue(
+            any("for=ch-01 entry item-ch01-009 has no quick check or reflection" in item for item in report["warnings"]),
+            report["warnings"],
+        )
+
+    def test_item_bank_cross_check(self) -> None:
+        yaml_text = "items:\n  - item_id: item-ch01-001\n    key: B\n  - item_id: \"item-ch01-002\"\n    key: A\n"
+        json_text = '[{"item_id": "item-ch02-001", "key": "A"}, {"item_id": "item-ch02-002"}]'
+        with tempfile.TemporaryDirectory() as temporary:
+            yaml_path = Path(temporary) / "items.id-ID.yaml"
+            yaml_path.write_text(yaml_text, encoding="utf-8")
+            json_path = Path(temporary) / "items.en-US.json"
+            json_path.write_text(json_text, encoding="utf-8")
+            ids = INSPECTOR.load_item_ids([yaml_path, json_path])
+        self.assertEqual(ids, {"item-ch01-001", "item-ch01-002", "item-ch02-001", "item-ch02-002"})
+        self.assertIsNone(self.inspect(friendly_chapter())["item_bank"])
+        report = self.inspect(friendly_chapter(), item_ids=ids)
+        self.assertEqual(report["errors"], [])
+        self.assertEqual(report["item_bank"]["item_count"], 4)
+        report = self.inspect(friendly_chapter(), item_ids={"item-ch01-002"})
+        self.assertEqual(report["status"], "fail")
+        self.assertTrue(
+            any("callout-ch01-05 item item-ch01-001 is not in the assessment bank" in error for error in report["errors"]),
+            report["errors"],
+        )
+
+    def test_cli_items_option_reports_the_bank(self) -> None:
+        script = ROOT / "skills/nam-book-teach/scripts/inspect_callouts.py"
+        with tempfile.TemporaryDirectory() as temporary:
+            manuscript = Path(temporary) / "enriched.id-ID.md"
+            manuscript.write_text(friendly_chapter(), encoding="utf-8")
+            bank = Path(temporary) / "items.id-ID.yaml"
+            bank.write_text("- item_id: item-ch01-001\n  key: B\n", encoding="utf-8")
+            command = [
+                sys.executable, str(script), "--manuscript", str(manuscript), "--mode", "friendly-explainer",
+                "--locale", "id-ID", "--chapter-id", "ch-01", "--items", str(bank),
+            ]
+            result = subprocess.run(command, capture_output=True, text=True, check=False)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            report = json.loads(result.stdout)
+            self.assertEqual(report["item_bank"], {"paths": [str(bank)], "item_count": 1})
+            bank.write_text("- item_id: item-ch01-999\n", encoding="utf-8")
+            result = subprocess.run(command, capture_output=True, text=True, check=False)
+            self.assertEqual(result.returncode, 1)
+            report = json.loads(result.stdout)
+            self.assertTrue(any("not in the assessment bank" in error for error in report["errors"]), report["errors"])
 
     def test_cli_prints_ids_and_uses_exit_codes(self) -> None:
         script = ROOT / "skills/nam-book-teach/scripts/inspect_callouts.py"
