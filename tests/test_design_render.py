@@ -150,7 +150,8 @@ class RenderSampleTests(unittest.TestCase):
                 content = "\n".join(
                     archive.read(name).decode("utf-8") for name in archive.namelist() if name.endswith(".xhtml")
                 )
-                media = [name for name in archive.namelist() if name.startswith("EPUB/media/") and name.endswith(".svg")]
+                # Pandoc 3.1 names SVG media .svgz, Pandoc 3.9 names it .svg; the media type is what readers use.
+                media = [name for name in archive.namelist() if name.startswith("EPUB/media/") and name.endswith((".svg", ".svgz"))]
                 self.assertGreaterEqual(len(media), 10, archive.namelist())
             self.assertIn("Kiat", content)
             self.assertIn("Peringatan", content)
