@@ -4,7 +4,7 @@
 
 ![Nam, the friendly Bali-starling page guide](assets/nam-icon.png)
 
-Nam Book Studio is an open, modular skill suite for creating complete books with Codex and other Agent Skills-compatible hosts. It covers the whole path from a rough idea to researched chapters, instructional features, original illustrations, assessments, bilingual editions, and production-ready files.
+Nam Book Studio is an open, modular skill suite for creating complete books with Claude Code, Codex, and other Agent Skills-compatible hosts. It covers the whole path from a rough idea to researched chapters, instructional features, original illustrations, assessments, bilingual editions, and production-ready files.
 
 `AskNam` is the single front door. It inspects the request and saved project state, selects the smallest useful set of specialist skills, coordinates safe parallel work, validates handoffs, and resumes long projects without regenerating approved material.
 
@@ -30,22 +30,24 @@ The `friendly-explainer` mode uses approachable explanations, visual anchors, ti
 
 | Skill | Responsibility |
 | --- | --- |
-| `$asknam` | Route, initialize, resume, coordinate, and report book-project state |
-| `$nam-book-architect` | Define audience, promise, outcomes, scope, structure, and chapter specifications |
-| `$nam-book-research` | Discover and verify sources; maintain source and claim-evidence ledgers |
-| `$nam-book-write` | Draft source-grounded chapters from approved specifications |
-| `$nam-book-teach` | Add purposeful explanations, examples, callouts, recaps, and misconception repair |
-| `$nam-book-assess` | Build blueprints, original questions, rationales, and item-quality reviews |
-| `$nam-book-illustration-setup` | Set project art direction, inspect references, define a mascot or mascot-free system, and prepare calibration for approval |
-| `$nam-book-design` | Define the page design as a design spec with generated stylesheet assets and prove it on a rendered sample chapter |
-| `$nam-book-visuals` | Plan visual coverage and choose illustration, diagram, table, or data graphic |
-| `$nam-book-illustrate` | Create hand-drawn raster illustrations using the project's approved style and selected identity |
-| `$nam-book-diagram` | Produce editable, accessible SVG mechanisms, algorithms, and comparisons |
-| `$nam-book-voice` | Build an authorized voice profile or audit drift; writing and editing apply the profile |
-| `$nam-book-edit` | Perform developmental, line, copy, consistency, and integration edits |
-| `$nam-book-localize` | Create aligned locale editions and verify semantic parity |
-| `$nam-book-publish` | Build DOCX, EPUB, screen PDF, and print PDF deliverables from the approved design |
-| `$nam-book-validate` | Run independent quality gates and issue a release decision |
+| `asknam` | Route, initialize, resume, coordinate, and report book-project state |
+| `nam-book-architect` | Define audience, promise, outcomes, scope, structure, and chapter specifications |
+| `nam-book-research` | Discover and verify sources; maintain source and claim-evidence ledgers |
+| `nam-book-write` | Draft source-grounded chapters from approved specifications |
+| `nam-book-teach` | Add purposeful explanations, examples, callouts, recaps, and misconception repair |
+| `nam-book-assess` | Build blueprints, original questions, rationales, and item-quality reviews |
+| `nam-book-illustration-setup` | Set project art direction, inspect references, define a mascot or mascot-free system, and prepare calibration for approval |
+| `nam-book-design` | Define the page design as a design spec with generated stylesheet assets and prove it on a rendered sample chapter |
+| `nam-book-visuals` | Plan visual coverage and choose illustration, diagram, table, or data graphic |
+| `nam-book-illustrate` | Create hand-drawn raster illustrations using the project's approved style and selected identity |
+| `nam-book-diagram` | Produce editable, accessible SVG mechanisms, algorithms, and comparisons |
+| `nam-book-voice` | Build an authorized voice profile or audit drift; writing and editing apply the profile |
+| `nam-book-edit` | Perform developmental, line, copy, consistency, and integration edits |
+| `nam-book-localize` | Create aligned locale editions and verify semantic parity |
+| `nam-book-publish` | Build DOCX, EPUB, screen PDF, and print PDF deliverables from the approved design |
+| `nam-book-validate` | Run independent quality gates and issue a release decision |
+
+Skill names are host-neutral. Claude Code invokes a skill as `/asknam ...`, or `/nam-book-studio:asknam ...` when the suite is installed as the plugin; Codex invokes it as `Use $asknam to ...`. This README writes bare names and, except where a host is named, shows prompt bodies that work in either host.
 
 ## Workflow
 
@@ -82,6 +84,23 @@ This is a workflow overview; the [routing contract](skills/asknam/references/rou
 
 ## Install
 
+### Through Claude Code
+
+One step, on Claude Code 2.1.275 or later:
+
+```text
+/plugin install nam-book-studio --marketplace arthamegayasa/nam-book-studio
+```
+
+Or in two steps: add this repository as a marketplace, then install the plugin from it:
+
+```text
+/plugin marketplace add arthamegayasa/nam-book-studio
+/plugin install nam-book-studio@nam-book-studio
+```
+
+The plugin ships every skill together with the shared profiles and schemas. Installed this way, skills are namespaced by the plugin, so AskNam is `/nam-book-studio:asknam`. For bare `/asknam` names, copy every directory under `skills/` into `~/.claude/skills/` (personal) or a project's `.claude/skills/` instead. AskNam's `SKILL.md` declares `disable-model-invocation: true`, so it never auto-triggers on unrelated writing; specialists stay model-invocable so AskNam can call them. The root `CLAUDE.md` imports `AGENTS.md`, so a checkout of this repository gives Claude Code the same instructions Codex reads.
+
 ### Through Codex
 
 Ask the built-in skill installer to install every skill path from this repository:
@@ -102,17 +121,19 @@ Codex discovers user skills under `~/.agents/skills`. If an installation does no
 
 Clone the repository and copy every directory under `skills/` into your host's skills directory. Keep the suite together: AskNam carries the shared profiles and schemas, and specialists resolve those resources from their sibling AskNam installation.
 
-The root `.codex-plugin/plugin.json` also packages the suite as one Codex plugin for hosts and marketplaces that support plugin installation.
+The root `.codex-plugin/plugin.json` and `.claude-plugin/plugin.json` package the same `skills/` directory as one plugin for Codex and for Claude Code, and `.claude-plugin/marketplace.json` lets Claude Code add this repository as a marketplace. The two manifests carry the same version string.
 
 ## Start with AskNam
 
-Explicit invocation keeps the router easy to remember and prevents it from intercepting unrelated writing tasks:
+Explicit invocation keeps the router easy to remember and prevents it from intercepting unrelated writing tasks. In Claude Code:
 
 ```text
-Use $asknam to create a friendly-explainer book about personal finance for first-time workers.
+/asknam create a friendly-explainer book about personal finance for first-time workers.
 Write it in Indonesian, plan an English edition, use frequent purposeful visuals,
 and prepare DOCX, EPUB, and screen PDF outputs.
 ```
+
+In Codex:
 
 ```text
 Use $asknam to design a medical exam-prep book from the official blueprint and my notes.
@@ -120,25 +141,29 @@ Require verified evidence for clinical claims, original MCQs with distractor rat
 and clinician review before release.
 ```
 
+In any host, after invoking `asknam`:
+
 ```text
-Use $asknam to resume the book project in this directory and complete the next unblocked milestone.
+Resume the book project in this directory and complete the next unblocked milestone.
 ```
 
 AskNam asks only for decisions that materially change the result. It records assumptions for everything else.
 
 ## Set up illustrations first
 
+Invoke `asknam` with your host's syntax, then:
+
 ```text
-Use $asknam to set up the illustrations before writing this book.
+Set up the illustrations before writing this book.
 It is an Indonesian guide to ocean conservation for teenagers.
 Use my attached turtle drawing as the mascot identity and the second image
 only as a line-and-texture reference. Keep a simple, friendly hand-drawn look.
 Show me a calibration sample before producing chapter illustrations.
 ```
 
-AskNam selects `$nam-book-illustration-setup` for this request. The specialist separates identity references from style references, records project-specific anchors, and prepares a small calibration sample for human approval. Nam is a selectable preset, not a requirement. A mascot-free book still receives a coherent hand-drawn style contract.
+AskNam selects `nam-book-illustration-setup` for this request. The specialist separates identity references from style references, records project-specific anchors, and prepares a small calibration sample for human approval. Nam is a selectable preset, not a requirement. A mascot-free book still receives a coherent hand-drawn style contract.
 
-The setup records visual tokens, mascot choice, reference hashes, rights status, cultural context, permitted variations, and continuity checks. Missing reference files or image tools are reported honestly; a written prompt is not presented as a rendered sample. Only approved setup artifacts unlock production. See the [illustration setup guide](docs/illustration-setup.md) for the four modes, examples, and existing-project upgrades.
+The setup records visual tokens, mascot choice, reference hashes, rights status, cultural context, permitted variations, continuity checks, and the name of the raster image tool that rendered the calibration sample (`production.raster_image_tool`), which chapter illustration then reuses; the suite names no default tool, so the field is whatever image-generation capability or skill your host provides. Missing reference files or image tools are reported honestly; a written prompt is not presented as a rendered sample. Only approved setup artifacts unlock production. See the [illustration setup guide](docs/illustration-setup.md) for the four modes, examples, and existing-project upgrades.
 
 ## Book modes
 
@@ -239,7 +264,7 @@ python skills/asknam/scripts/validate_resources.py --require-mirrors
 python -m compileall -q scripts skills
 ```
 
-Each skill should also pass OpenAI's `quick_validate.py` from the built-in `skill-creator` skill. The plugin manifest should pass `validate_plugin.py` from the built-in `plugin-creator` skill.
+Each skill should also pass OpenAI's `quick_validate.py` from the built-in `skill-creator` skill, and the Codex plugin manifest `validate_plugin.py` from the built-in `plugin-creator` skill. With the Claude Code CLI installed, `claude plugin validate .` checks the Claude plugin and marketplace manifests and the skills directory; it is optional and not part of `run_checks.py`. It warns that the root `CLAUDE.md` is not shipped as plugin context, which is intended: that file serves repository checkouts, and the installed plugin carries its instructions inside the skills.
 
 ## Research, attribution, and originality
 

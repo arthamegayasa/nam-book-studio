@@ -1,6 +1,6 @@
 # Illustration setup
 
-Set the visual identity before producing chapter images. Version 0.2.0 adds `$nam-book-illustration-setup` as an early specialist that AskNam can select automatically. It keeps hand-drawn treatment while fitting each project's subject, readers, references, and mascot choice.
+Set the visual identity before producing chapter images. Version 0.2.0 adds `nam-book-illustration-setup` as an early specialist that AskNam can select automatically. It keeps hand-drawn treatment while fitting each project's subject, readers, references, and mascot choice.
 
 ## Choose what belongs to this project
 
@@ -18,30 +18,32 @@ The skill asks only about choices that would materially change the result. A sup
 1. Inspect the brief and accessible reference images. Record each image's purpose, hash, provenance, and rights status; request missing files instead of describing unseen images.
 2. Define the visual language: line irregularity, simplified forms, texture, palette roles, negative space, expression, and final-size readability. Use project-appropriate cultural cues only when requested or justified by the subject.
 3. Record fixed identity anchors and permitted variations, or an explicit no-mascot choice. Nam's white bird body and round charcoal eyes apply only to the Nam preset.
-4. Produce or inspect a small representative calibration sample using the available image tools. A mascot needs identity/pose checks; a mascot-free project needs representative objects or scenes. Review at intended placement size and in grayscale.
+4. Produce or inspect a small representative calibration sample with the host's raster image tool (built-in image generation or an installed image-generation skill) and record that tool's name in the setup's `production.raster_image_tool`, so chapter illustration later uses the same tool. A mascot needs identity/pose checks; a mascot-free project needs representative objects or scenes. Review at intended placement size and in grayscale.
 5. Present the setup and character contract for human approval before batch production. Keep rejected alternatives and source assets intact; new choices become new revisions.
 
 The two registered outputs are `visuals/illustration-setup.json` and `visuals/character-bible.json`. For a mascot-free project, the latter explicitly records that no recurring mascot is allowed; it does not invent a character to fill a slot. The new skill's [contract and templates](../skills/nam-book-illustration-setup/SKILL.md) define the detailed handoff.
 
 Calibration assets are registered separately under `visuals/calibration/<artifact_id>/`. A bundle can retain a supplied image in its original format, an editable SVG sample, or a generated sheet. The setup records these bundles as versioned inputs, so changing the sample also invalidates the approval that depended on it.
 
-The skill does not promise exact text inside generated images. Diagrams retain editable labels, geometry, and factual relationships even when their surrounding visual language is hand-drawn. Missing rights or reference images block the affected branch. Without an image tool or a suitable supplied calibration asset, setup remains provisional rather than claiming a sample exists.
+The skill does not promise exact text inside generated images. Diagrams retain editable labels, geometry, and factual relationships even when their surrounding visual language is hand-drawn. Missing rights or reference images block the affected branch. Without an image tool or a suitable supplied calibration asset, setup remains provisional rather than claiming a sample exists; the tool that did render the sample is named in `production.raster_image_tool` so production cannot silently switch to another one.
 
 ## Example requests
+
+Invoke `asknam` with your host's syntax, then:
 
 Custom identity:
 
 ```text
-Use $asknam to set up the art for a friendly-explainer book about astronomy
-for teenagers. Design an original little comet guide, not Nam. Keep irregular
-ink contours, sparse texture, simple friendly eyes, and a restrained palette.
+Set up the art for a friendly-explainer book about astronomy for teenagers.
+Design an original little comet guide, not Nam. Keep irregular ink contours,
+sparse texture, simple friendly eyes, and a restrained palette.
 Show a calibration sheet before any chapter illustrations.
 ```
 
-Supplied mascot:
+Supplied mascot (this request can also go straight to `nam-book-illustration-setup`):
 
 ```text
-Use $nam-book-illustration-setup with my attached mascot drawing.
+Set up the illustrations from my attached mascot drawing.
 Preserve its silhouette, face, and proportions. Use the second reference only
 for pencil texture. This book is for adult gardening beginners in Indonesian.
 Ask before changing the mascot's identity or adding cultural accessories.
@@ -50,7 +52,7 @@ Ask before changing the mascot's identity or adding cultural accessories.
 Mascot-free:
 
 ```text
-Use $asknam to set up a hand-drawn visual system for this engineering textbook.
+Set up a hand-drawn visual system for this engineering textbook.
 No mascot. Use simple ink sketches and quiet neutral colors. Keep all formulas,
 labels, measurements, and diagram relationships editable and exact.
 ```
@@ -58,7 +60,7 @@ labels, measurements, and diagram relationships editable and exact.
 Existing Nam project:
 
 ```text
-Use $asknam to add the new illustration setup to this existing book.
+Add the new illustration setup to this existing book.
 Adopt my approved Nam character bible without redesigning the face or
 overwriting the old assets. Show what needs fresh approval before continuing.
 ```

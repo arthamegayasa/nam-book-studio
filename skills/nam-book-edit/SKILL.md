@@ -20,7 +20,7 @@ Do not start line editing while unresolved developmental changes would discard t
 3. Apply changes in descending order of impact: development, content/consistency, integration, line, then copy.
 4. Preserve citations with their supported claims and preserve uncertainty, exceptions, warnings, numbers, and units.
 5. Integrate approved callouts, figure and table references, and assessment links without duplicating their content. A callout keeps its `callout_id` through retyping and moves, and a new callout takes the chapter's next unused number. Fill each `answer-key` from the assessment item bank in the contract's entry format (`- item-ch03-001: B. One-line rationale.`; `- callout-ch03-07: discussion` for a `chapter-end` reflection): one entry per `chapter-end` or `book-end` quick check and reflection that points to it, copied from the bank rather than re-derived, and verified with `inspect_callouts.py --items`.
-6. Apply the approved voice profile. Route voice calibration or drift analysis to `$nam-book-voice`.
+6. Apply the approved voice profile. Route voice calibration or drift analysis to `nam-book-voice`.
 7. Run a post-edit claim diff. For high-stakes content, apply [references/high-stakes-editing.md](references/high-stakes-editing.md).
 
 ## Outputs

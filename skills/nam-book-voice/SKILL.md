@@ -21,7 +21,7 @@ Read [references/voice-profile.md](references/voice-profile.md) when calibrating
 2. Record observable tendencies separately from editorial choices. Do not treat accidental errors or one sample's topic as permanent voice.
 3. When the requested reference is a third-party author, use high-level transferable traits instead of signature imitation or copied phrasing.
 4. When auditing, cite semantic block IDs and distinguish voice drift from factual, structural, or localization problems.
-5. Test proposed guidance against representative passages, but leave manuscript changes to `$nam-book-write` or `$nam-book-edit`.
+5. Test proposed guidance against representative passages, but leave manuscript changes to `nam-book-write` or `nam-book-edit`.
 6. Preserve claim/source IDs, quotations, citations, numbers, units, uncertainty, warnings, and locale-specific terminology in every example.
 
 Optimize for authentic communication, clarity, and consistency. Detector scores are irrelevant: do not target, promise, test, or report AI-detector evasion.

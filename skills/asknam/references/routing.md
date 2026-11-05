@@ -4,6 +4,11 @@ AskNam compiles a route from project intent, profile, features, risk, existing
 artifacts, approvals, and staleness. A bundle can contain every specialist while
 one project uses only the smallest sufficient subset.
 
+Skill, capability, and route node IDs are the bare names in the catalog and are
+host-neutral. A host may namespace the invocation name (Claude Code shows a
+plugin install as `nam-book-studio:asknam`); the IDs in the catalog, the
+manifests, and the route records never carry that prefix.
+
 ## Intent boundary
 
 | Intent | Starting route | Additions |

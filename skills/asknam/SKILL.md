@@ -1,6 +1,7 @@
 ---
 name: asknam
 description: Route and run a Nam Book Studio project. Invoke explicitly to start, resume, set up illustration direction, revise, audit, illustrate, localize, or publish through the smallest sufficient specialist workflow.
+disable-model-invocation: true
 ---
 
 # AskNam

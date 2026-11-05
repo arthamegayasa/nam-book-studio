@@ -32,6 +32,7 @@
   "production": {
     "formats": [],
     "placements": [],
+    "raster_image_tool": null,
     "trim_size": null,
     "live_area": null,
     "minimum_effective_ppi": null,
