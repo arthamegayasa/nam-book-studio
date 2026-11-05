@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" width="1200" height="675" role="img" aria-labelledby="sample-figure-title sample-figure-desc">
+  <title id="sample-figure-title">Sample figure: dough before and after rising</title>
+  <desc id="sample-figure-desc">Two bowls drawn with irregular ink lines. The left bowl holds a flat lump of dough labelled before; the right bowl holds a domed lump labelled after, with small gas bubbles and an arrow between the bowls labelled one hour at room temperature.</desc>
+  <rect width="1200" height="675" fill="#ffffff"/>
+  <g fill="none" stroke="#1f2328" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M140 420c6 90 70 150 180 152 110-2 176-62 182-152"/>
+    <path d="M140 420c-10-4-10-18 2-22h358c12 4 12 18 2 22"/>
+    <path d="M200 398c20-32 68-52 122-50 56 2 100 22 118 50"/>
+    <path d="M700 420c6 90 70 150 180 152 110-2 176-62 182-152"/>
+    <path d="M700 420c-10-4-10-18 2-22h358c12 4 12 18 2 22"/>
+    <path d="M730 398c6-110 86-176 150-176 68 0 148 66 154 176"/>
+    <path d="M820 300a9 9 0 1 0 .1 18 9 9 0 0 0-.1-18zM905 258a7 7 0 1 0 .1 14 7 7 0 0 0-.1-14zM960 330a10 10 0 1 0 .1 20 10 10 0 0 0-.1-20z"/>
+    <path d="M540 360h118"/>
+    <path d="M632 334l28 26-28 28"/>
+  </g>
+  <g font-family="Arial, sans-serif" font-size="34" fill="#1f2328" text-anchor="middle">
+    <text x="320" y="620">before</text>
+    <text x="880" y="620">after</text>
+    <text x="600" y="320" font-size="28">1 h, room temperature</text>
+  </g>
+</svg>

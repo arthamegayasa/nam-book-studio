@@ -1,0 +1,70 @@
+{
+  "$schema": "../../../asknam/references/schemas/design-spec.schema.json",
+  "schema_version": "1.0.0",
+  "project_id": "",
+  "profile": "exam-prep",
+  "design_version": "1.0.0",
+  "preset": "exam-prep",
+  "callout_catalog_version": "1.0.0",
+  "illustration_setup": null,
+  "trim": { "name": "A5", "width_mm": 148, "height_mm": 210, "bleed_mm": null },
+  "page": {
+    "margins_mm": { "top": 14, "bottom": 16, "inner": 15, "outer": 12 },
+    "side_column_mm": 30,
+    "column_gap_mm": 4,
+    "baseline_pt": 13
+  },
+  "typography": {
+    "body": { "family": "Source Sans 3", "fallbacks": ["Segoe UI", "Helvetica Neue", "Arial", "sans-serif"], "size_pt": 9.5, "leading_pt": 13, "weight": 400, "license": "SIL OFL 1.1, referenced not bundled" },
+    "headings": { "family": "Source Sans 3", "fallbacks": ["Segoe UI", "Helvetica Neue", "Arial", "sans-serif"], "size_pt": 16, "leading_pt": 20, "weight": 700, "license": "SIL OFL 1.1, referenced not bundled" },
+    "captions": { "family": "Source Sans 3", "fallbacks": ["Segoe UI", "Arial", "sans-serif"], "size_pt": 8, "leading_pt": 10.5, "weight": 400, "style": "italic", "license": "SIL OFL 1.1, referenced not bundled" },
+    "labels": { "family": "Source Sans 3", "fallbacks": ["Segoe UI", "Arial", "sans-serif"], "size_pt": 7.5, "leading_pt": 9.5, "weight": 700, "license": "SIL OFL 1.1, referenced not bundled" }
+  },
+  "color": {
+    "ink": "#1f2328",
+    "paper": "#ffffff",
+    "accent": "#9a3412",
+    "muted": "#6b7280",
+    "rule": "#d0d7de",
+    "tint": "#fff7ed",
+    "callout_accent": {
+      "warning": "#b42318",
+      "exam-trap": "#b42318",
+      "high-yield": "#9a3412",
+      "must-know": "#9a3412",
+      "pearl": "#0f766e",
+      "memory-aid": "#6d28d9",
+      "quick-check": "#1d4ed8",
+      "answer-key": "#6b7280"
+    }
+  },
+  "callouts": {
+    "inline": { "frame": "rule-left", "background": "none", "icon_size_mm": 6, "label_style": "run-in", "max_width_mm": null, "font_scale": 1.0 },
+    "side-column": { "frame": "none", "background": "none", "icon_size_mm": 7, "label_style": "stacked", "max_width_mm": 30, "font_scale": 0.85 },
+    "band": { "frame": "rule-left", "background": "tint", "icon_size_mm": 8, "label_style": "kicker", "max_width_mm": null, "font_scale": 0.95 },
+    "full-page": { "frame": "box", "background": "none", "icon_size_mm": 9, "label_style": "kicker", "max_width_mm": null, "font_scale": 0.95 },
+    "opener": { "frame": "box", "background": "tint", "icon_size_mm": 10, "label_style": "kicker", "max_width_mm": null, "font_scale": 1.0 }
+  },
+  "icons": { "format": "svg", "source": "bundled", "directory": "icons", "style_note": "Bundled monoline icons; traps and high-yield markers must stay distinguishable in grayscale by label." },
+  "chapter_opener": { "style": "run-in", "elements": ["number", "title", "must-know"] },
+  "figures": { "caption_position": "below", "frame": "none", "default_placement": "inline", "number_figures": true },
+  "tables": { "caption_position": "above", "header_rule": true, "zebra": true, "font_scale": 0.88 },
+  "running": { "head": "chapter-title", "page_numbers": "outer" },
+  "render": {
+    "docx": { "engine": "pandoc", "toc": true },
+    "epub": { "engine": "pandoc", "split_level": 1 },
+    "pdf": { "engine": "chromium", "page_media_limitations": ["Chromium renders @page size and margins; running heads and page numbers are not rendered."] }
+  },
+  "degradation": {
+    "epub": { "side-column": "inline", "band": "inline", "full-page": "page-break", "opener": "inline" },
+    "docx": { "side-column": "band", "full-page": "page-break", "opener": "band" },
+    "libreoffice": { "side-column": "band", "full-page": "page-break", "opener": "band" }
+  },
+  "publisher_preset": null,
+  "sample_chapter": { "source": "bundled", "artifact_id": null, "locale": "en-US" },
+  "decisions": [
+    { "decision": "Compact margins and a sans body", "reason": "Review books are scanned under time pressure; density and quick recognition matter more than long-form reading comfort." },
+    { "decision": "Must Know opens the chapter", "reason": "The blueprint promise is visible before any explanation." }
+  ],
+  "open_questions": []
+}

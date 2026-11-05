@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" role="img" aria-labelledby="title-technical-corner">
+  <title id="title-technical-corner">Technical corner</title>
+  <g fill="none" stroke="#1f2328" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M24 16.9a7.1 7.1 0 1 0 .1 14.2 7.1 7.1 0 0 0-.1-14.2z"/>
+    <path d="M24 6.6l2.3 4.6 4.9-1.5.9 5 5.1.9-1.5 4.9 4.5 2.4-4.5 2.4 1.5 4.9-5.1 1-.9 5-4.9-1.6L24 41.4l-2.3-4.8-4.9 1.6-.9-5-5.1-1 1.5-4.9-4.6-2.4 4.6-2.4-1.5-4.9 5.1-.9.9-5 4.9 1.5L24 6.6z"/>
+  </g>
+</svg>

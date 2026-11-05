@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" role="img" aria-labelledby="title-high-yield">
+  <title id="title-high-yield">High yield</title>
+  <g fill="none" stroke="#1f2328" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M7.6 36.4L17.2 26l6.9 6.3 9.6-12.4"/>
+    <path d="M26.8 19.4l7.3-.1.2 7.3"/>
+    <path d="M7.4 41.1h33.3"/>
+  </g>
+</svg>

@@ -1,0 +1,69 @@
+{
+  "$schema": "../../../asknam/references/schemas/design-spec.schema.json",
+  "schema_version": "1.0.0",
+  "project_id": "",
+  "profile": "textbook",
+  "design_version": "1.0.0",
+  "preset": "textbook",
+  "callout_catalog_version": "1.0.0",
+  "illustration_setup": null,
+  "trim": { "name": "B5", "width_mm": 176, "height_mm": 250, "bleed_mm": null },
+  "page": {
+    "margins_mm": { "top": 20, "bottom": 22, "inner": 20, "outer": 18 },
+    "side_column_mm": 38,
+    "column_gap_mm": 6,
+    "baseline_pt": 14.5
+  },
+  "typography": {
+    "body": { "family": "Source Serif 4", "fallbacks": ["Georgia", "serif"], "size_pt": 10.5, "leading_pt": 14.5, "weight": 400, "license": "SIL OFL 1.1, referenced not bundled" },
+    "headings": { "family": "Source Sans 3", "fallbacks": ["Segoe UI", "Helvetica Neue", "Arial", "sans-serif"], "size_pt": 18, "leading_pt": 22, "weight": 600, "license": "SIL OFL 1.1, referenced not bundled" },
+    "captions": { "family": "Source Sans 3", "fallbacks": ["Segoe UI", "Arial", "sans-serif"], "size_pt": 8.5, "leading_pt": 11, "weight": 400, "license": "SIL OFL 1.1, referenced not bundled" },
+    "labels": { "family": "Source Sans 3", "fallbacks": ["Segoe UI", "Arial", "sans-serif"], "size_pt": 8, "leading_pt": 10, "weight": 600, "license": "SIL OFL 1.1, referenced not bundled" }
+  },
+  "color": {
+    "ink": "#1f2328",
+    "paper": "#ffffff",
+    "accent": "#1f4e79",
+    "muted": "#6b7280",
+    "rule": "#c9d1d9",
+    "tint": "#f1f5f9",
+    "callout_accent": {
+      "warning": "#b42318",
+      "definition": "#1f4e79",
+      "key-principle": "#1f4e79",
+      "evidence-note": "#4b5563",
+      "limits": "#92400e",
+      "quick-check": "#0f766e",
+      "answer-key": "#6b7280"
+    }
+  },
+  "callouts": {
+    "inline": { "frame": "rule-left", "background": "none", "icon_size_mm": 6, "label_style": "run-in", "max_width_mm": null, "font_scale": 1.0 },
+    "side-column": { "frame": "none", "background": "none", "icon_size_mm": 6, "label_style": "stacked", "max_width_mm": 38, "font_scale": 0.85 },
+    "band": { "frame": "rule-top", "background": "tint", "icon_size_mm": 7, "label_style": "kicker", "max_width_mm": null, "font_scale": 0.95 },
+    "full-page": { "frame": "box", "background": "none", "icon_size_mm": 8, "label_style": "kicker", "max_width_mm": null, "font_scale": 0.95 },
+    "opener": { "frame": "none", "background": "none", "icon_size_mm": 8, "label_style": "kicker", "max_width_mm": null, "font_scale": 1.0 }
+  },
+  "icons": { "format": "svg", "source": "bundled", "directory": "icons", "style_note": "Quiet monoline icons; the bundled set is used unless the project draws its own." },
+  "chapter_opener": { "style": "run-in", "elements": ["number", "title", "objectives"] },
+  "figures": { "caption_position": "below", "frame": "hairline", "default_placement": "inline", "number_figures": true },
+  "tables": { "caption_position": "above", "header_rule": true, "zebra": false, "font_scale": 0.9 },
+  "running": { "head": "chapter-title", "page_numbers": "outer" },
+  "render": {
+    "docx": { "engine": "pandoc", "toc": true },
+    "epub": { "engine": "pandoc", "split_level": 1 },
+    "pdf": { "engine": "chromium", "page_media_limitations": ["Chromium renders @page size and margins; running heads and page numbers are not rendered."] }
+  },
+  "degradation": {
+    "epub": { "side-column": "inline", "band": "inline", "full-page": "page-break", "opener": "inline" },
+    "docx": { "side-column": "band", "full-page": "page-break", "opener": "band" },
+    "libreoffice": { "side-column": "band", "full-page": "page-break", "opener": "band" }
+  },
+  "publisher_preset": null,
+  "sample_chapter": { "source": "bundled", "artifact_id": null, "locale": "en-US" },
+  "decisions": [
+    { "decision": "B5 trim, numbered figures, hairline frames", "reason": "A reference text is consulted, not only read; numbering and frames support cross-reference." },
+    { "decision": "Band callouts carry a top rule rather than a hand-drawn frame", "reason": "Keeps the textbook register quieter while the hand-drawn tokens stay in figures and icons." }
+  ],
+  "open_questions": []
+}

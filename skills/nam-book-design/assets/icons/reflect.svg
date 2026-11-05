@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" role="img" aria-labelledby="title-reflect">
+  <title id="title-reflect">What do you think</title>
+  <g fill="none" stroke="#1f2328" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M24 8.1c9.4-.1 16.4 5.9 16.3 13.4-.1 7.3-6.9 12.9-16.3 12.8-2.3 0-4.4-.3-6.4-.9l-7.8 3.4 2.3-6.9c-2.7-2.3-4.3-5.2-4.3-8.5C7.9 14 15 8.2 24 8.1z"/>
+    <path d="M20.6 17.6c.5-2.3 2-3.4 3.9-3.3 2.1.1 3.6 1.4 3.6 3.2 0 2.4-3.5 2.8-3.5 5.6"/>
+    <path d="M24.5 27.4v.6"/>
+    <path d="M14.7 39.5a1.6 1.6 0 1 0 .1 3.2 1.6 1.6 0 0 0-.1-3.2z"/>
+  </g>
+</svg>

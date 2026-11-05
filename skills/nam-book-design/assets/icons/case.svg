@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" role="img" aria-labelledby="title-case">
+  <title id="title-case">Case</title>
+  <g fill="none" stroke="#1f2328" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12.1 11.4h23.8c1 0 1.7.8 1.7 1.7v26.3c0 1-.8 1.7-1.7 1.7H12.1c-1 0-1.7-.8-1.7-1.7V13.1c0-.9.8-1.7 1.7-1.7z"/>
+    <path d="M18.6 8.1h10.8v5.4H18.6V8.1z"/>
+    <path d="M16.3 21.6h15.4M16.3 27.4h15.4M16.3 33.2h9.7"/>
+  </g>
+</svg>

@@ -1,0 +1,211 @@
+{
+  "$schema": "../../../asknam/references/schemas/design-spec.schema.json",
+  "schema_version": "1.0.0",
+  "project_id": "",
+  "profile": "friendly-explainer",
+  "design_version": "1.0.0",
+  "preset": "friendly-explainer",
+  "callout_catalog_version": "1.0.0",
+  "illustration_setup": null,
+  "trim": {
+    "name": "A5",
+    "width_mm": 148,
+    "height_mm": 210,
+    "bleed_mm": null
+  },
+  "page": {
+    "margins_mm": {
+      "top": 16,
+      "bottom": 18,
+      "inner": 16,
+      "outer": 14
+    },
+    "side_column_mm": 34,
+    "column_gap_mm": 5,
+    "baseline_pt": 14
+  },
+  "typography": {
+    "body": {
+      "family": "Source Serif 4",
+      "fallbacks": [
+        "Georgia",
+        "serif"
+      ],
+      "size_pt": 10.5,
+      "leading_pt": 14,
+      "weight": 400,
+      "license": "SIL OFL 1.1, referenced not bundled"
+    },
+    "headings": {
+      "family": "Source Sans 3",
+      "fallbacks": [
+        "Segoe UI",
+        "Helvetica Neue",
+        "Arial",
+        "sans-serif"
+      ],
+      "size_pt": 20,
+      "leading_pt": 24,
+      "weight": 700,
+      "license": "SIL OFL 1.1, referenced not bundled"
+    },
+    "captions": {
+      "family": "Source Sans 3",
+      "fallbacks": [
+        "Segoe UI",
+        "Arial",
+        "sans-serif"
+      ],
+      "size_pt": 8.5,
+      "leading_pt": 11,
+      "weight": 400,
+      "style": "italic",
+      "license": "SIL OFL 1.1, referenced not bundled"
+    },
+    "labels": {
+      "family": "Source Sans 3",
+      "fallbacks": [
+        "Segoe UI",
+        "Arial",
+        "sans-serif"
+      ],
+      "size_pt": 8,
+      "leading_pt": 10,
+      "weight": 700,
+      "license": "SIL OFL 1.1, referenced not bundled"
+    }
+  },
+  "color": {
+    "ink": "#1f2328",
+    "paper": "#ffffff",
+    "accent": "#c97832",
+    "muted": "#6b7280",
+    "rule": "#d0d7de",
+    "tint": "#fbf4ea",
+    "callout_accent": {
+      "warning": "#b42318",
+      "myth-fact": "#6d28d9",
+      "tip": "#0f766e",
+      "remember": "#1d4ed8",
+      "reflect": "#0e7490",
+      "quick-check": "#b45309",
+      "answer-key": "#6b7280"
+    }
+  },
+  "callouts": {
+    "inline": {
+      "frame": "rule-left",
+      "background": "none",
+      "icon_size_mm": 7,
+      "label_style": "run-in",
+      "max_width_mm": null,
+      "font_scale": 1.0
+    },
+    "side-column": {
+      "frame": "none",
+      "background": "none",
+      "icon_size_mm": 8,
+      "label_style": "stacked",
+      "max_width_mm": 34,
+      "font_scale": 0.86
+    },
+    "band": {
+      "frame": "hand-drawn",
+      "background": "tint",
+      "icon_size_mm": 9,
+      "label_style": "kicker",
+      "max_width_mm": null,
+      "font_scale": 0.95
+    },
+    "full-page": {
+      "frame": "box",
+      "background": "tint",
+      "icon_size_mm": 11,
+      "label_style": "kicker",
+      "max_width_mm": null,
+      "font_scale": 0.95
+    },
+    "opener": {
+      "frame": "none",
+      "background": "none",
+      "icon_size_mm": 12,
+      "label_style": "kicker",
+      "max_width_mm": null,
+      "font_scale": 1.1
+    }
+  },
+  "icons": {
+    "format": "svg",
+    "source": "bundled",
+    "directory": "icons",
+    "style_note": "Monoline hand-drawn strokes from the bundled default set; redraw per project when an illustration setup defines tokens."
+  },
+  "chapter_opener": {
+    "style": "half-page",
+    "elements": [
+      "number",
+      "title",
+      "big-idea"
+    ]
+  },
+  "figures": {
+    "caption_position": "below",
+    "frame": "none",
+    "default_placement": "inline",
+    "number_figures": true
+  },
+  "tables": {
+    "caption_position": "above",
+    "header_rule": true,
+    "zebra": false,
+    "font_scale": 0.9
+  },
+  "running": {
+    "head": "chapter-title",
+    "page_numbers": "outer"
+  },
+  "render": {
+    "docx": {
+      "engine": "pandoc",
+      "toc": true
+    },
+    "epub": {
+      "engine": "pandoc",
+      "split_level": 1
+    },
+    "pdf": {
+      "engine": "chromium",
+      "page_media_limitations": [
+        "Chromium renders @page size and margins; running heads and page numbers are not rendered."
+      ]
+    }
+  },
+  "degradation": {
+    "epub": {
+      "side-column": "inline",
+      "band": "inline",
+      "full-page": "page-break",
+      "opener": "inline"
+    },
+    "docx": {
+      "side-column": "band",
+      "full-page": "page-break",
+      "opener": "band"
+    },
+    "libreoffice": {
+      "side-column": "band",
+      "full-page": "page-break",
+      "opener": "band"
+    }
+  },
+  "publisher_preset": null,
+  "sample_chapter": {
+    "source": "bundled",
+    "artifact_id": null,
+    "locale": "en-US"
+  },
+  "decisions": [],
+  "open_questions": [
+    "Confirm trim size, side column versus band-only callouts, body typeface, and any publisher preset with the author before approval."
+  ]
+}

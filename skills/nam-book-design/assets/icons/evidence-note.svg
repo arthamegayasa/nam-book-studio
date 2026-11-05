@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" role="img" aria-labelledby="title-evidence-note">
+  <title id="title-evidence-note">Evidence note</title>
+  <g fill="none" stroke="#1f2328" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M20.4 8.3a12 12 0 1 0 .3 24 12 12 0 0 0-.3-24z"/>
+    <path d="M29.1 29.3l10.6 10.5"/>
+    <path d="M14.8 17.4h11.2M14.8 22.1h8.1M14.8 26.7h10.1"/>
+  </g>
+</svg>
