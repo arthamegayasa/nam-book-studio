@@ -21,7 +21,7 @@ Inspect the selected project's canonical calibration assets before generating a 
 2. Build a generation or editing prompt from the approved setup, character bible, and relevant branch of [references/illustration-production.md](references/illustration-production.md). Use only content supported by the source passage and evidence mappings.
 3. Generate each final image separately with the available raster image tool, following its image-editing/reference requirements. Treat generated text as provisional; reserve clean label zones and add exact labels through a controlled typesetting step. If the tool is unavailable, return the brief with a blocker instead of claiming a delivered asset.
 4. Compare the result against the selected identity and hand-drawn tokens. A mascot must participate in the teaching action; in mascot-free mode, the scene carries that action. Apply Nam's protected face and body rules only when Nam is selected.
-5. Inspect composition, factual meaning, cultural treatment, series consistency, crop safety, effective print resolution, transparency, grayscale legibility, and color-independent warnings. Use `scripts/inspect_png.py` for structural PNG and effective-PPI checks.
+5. Inspect composition, factual meaning, cultural treatment, series consistency, crop safety, effective print resolution, transparency, grayscale legibility, and color-independent warnings. Use `scripts/inspect_png.py` with the placed size (`--placed-width-in`, `--require-placed-size`) for structural PNG and effective-PPI checks.
 6. Revise narrowly when a check fails. A changed fact, label, pose with cultural meaning, or clinical depiction requires the relevant content reviewer again.
 
 ## Outputs

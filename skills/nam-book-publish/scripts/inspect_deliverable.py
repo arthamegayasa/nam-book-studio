@@ -3,6 +3,9 @@
 
 This tool never claims visual, accessibility, semantic, PDF-profile, or medical
 conformance. It does not extract archive members to disk.
+
+The default mode is for proofs. ``--strict`` promotes the accessibility and
+navigation warnings to errors for release preflight.
 """
 
 from __future__ import annotations
@@ -23,6 +26,29 @@ from pathlib import Path, PurePosixPath
 # forbidden so the parser never resolves external or expanding content.
 BARE_HTML_DOCTYPE = re.compile(rb"<!DOCTYPE\s+html\s*>", re.IGNORECASE)
 DOCTYPE_DECLARATION = re.compile(rb"<!DOCTYPE[^>]*>", re.IGNORECASE)
+
+# Warnings that ``--strict`` turns into errors: accessibility and navigation
+# findings a release candidate must not carry. Structural warnings (absent
+# optional members, compression ratios) stay warnings in both modes.
+STRICT_PROMOTIONS = (
+    "drawing metadata elements have no title or description",
+    "no TOC field instruction was detected",
+    "EPUB img elements have no alt attribute",
+    "tagged-PDF structure marker was not detected",
+    "document language marker was not detected",
+    "bookmark outline marker was not detected",
+    "metadata stream marker was not detected",
+)
+
+
+def apply_strict(errors: list[str], warnings: list[str]) -> list[str]:
+    """Promote accessibility and navigation warnings to errors; return the promoted messages."""
+
+    promoted = [message for message in warnings if any(marker in message for marker in STRICT_PROMOTIONS)]
+    for message in promoted:
+        warnings.remove(message)
+        errors.append(f"strict: {message}")
+    return promoted
 
 
 def local_name(tag: str) -> str:
@@ -106,16 +132,30 @@ def inspect_docx(path: Path, errors: list[str], warnings: list[str]) -> dict[str
                 if root is not None:
                     roots[name] = root
 
+            content_types = roots.get("[Content_Types].xml")
+            if content_types is not None:
+                declared_parts = {
+                    element.get("PartName")
+                    for element in content_types.iter()
+                    if local_name(element.tag) == "Override"
+                }
+                if "/word/document.xml" not in declared_parts:
+                    errors.append("[Content_Types].xml does not declare the main document part /word/document.xml")
+
             document = roots.get("word/document.xml")
+            body_found = False
             paragraphs = 0
             tables = 0
             drawings = 0
             missing_alt = 0
+            text_characters = 0
             toc_field_found = False
             if document is not None:
                 for element in document.iter():
                     name = local_name(element.tag)
-                    if name == "p":
+                    if name == "body":
+                        body_found = True
+                    elif name == "p":
                         paragraphs += 1
                     elif name == "tbl":
                         tables += 1
@@ -123,10 +163,18 @@ def inspect_docx(path: Path, errors: list[str], warnings: list[str]) -> dict[str
                         drawings += 1
                     elif name == "docPr" and not (element.get("descr") or element.get("title")):
                         missing_alt += 1
+                    elif name == "t":
+                        text_characters += len((element.text or "").strip())
                     elif name in {"instrText", "fldSimple"}:
                         value = "".join(element.itertext()) + " " + " ".join(element.attrib.values())
                         if re.search(r"\bTOC\b", value):
                             toc_field_found = True
+                if not body_found:
+                    errors.append("word/document.xml has no body element")
+                if paragraphs == 0:
+                    errors.append("word/document.xml has no paragraphs")
+                if text_characters == 0:
+                    errors.append("word/document.xml has no text runs")
             if drawings and missing_alt:
                 warnings.append(f"{missing_alt} drawing metadata elements have no title or description")
             if not toc_field_found:
@@ -139,6 +187,7 @@ def inspect_docx(path: Path, errors: list[str], warnings: list[str]) -> dict[str
                     "table_count": tables,
                     "drawing_count": drawings,
                     "media_count": len(media),
+                    "text_characters": text_characters,
                     "toc_field_detected": toc_field_found,
                 }
             )
@@ -218,31 +267,39 @@ def inspect_epub(path: Path, errors: list[str], warnings: list[str]) -> dict[str
 
             missing_resources = []
             nav_ids = []
-            content_docs = []
+            content_docs: list[tuple[str, str]] = []
+            members_by_id: dict[str, str] = {}
             for item_id, item in manifest.items():
                 href = item["href"]
                 if not href:
                     errors.append(f"manifest item {item_id} has no href")
                     continue
                 member = resolved_member(opf_path, href)
+                members_by_id[item_id] = member
                 if unsafe_member(member) or member not in names:
                     missing_resources.append(member)
                 if "nav" in item["properties"].split():
                     nav_ids.append(item_id)
                 if item["media_type"] in {"application/xhtml+xml", "image/svg+xml"} and member in names:
-                    content_docs.append(member)
+                    content_docs.append((member, item["media_type"]))
             if missing_resources:
                 errors.append("manifest resources are missing or unsafe: " + ", ".join(sorted(missing_resources)))
             if len(nav_ids) != 1:
                 errors.append(f"expected exactly one manifest navigation item, found {len(nav_ids)}")
 
+            nav_members = {members_by_id[item_id] for item_id in nav_ids if item_id in members_by_id}
+            spine_members = {members_by_id[item_id] for item_id in spine_ids if item_id in members_by_id}
             images = 0
             missing_alt = 0
             scripted_docs = 0
-            for member in content_docs:
+            text_characters = 0
+            for member, media_type in content_docs:
                 root = parse_xml(archive.read(member), member, errors)
                 if root is None:
                     continue
+                counts_as_text = (
+                    media_type == "application/xhtml+xml" and member in spine_members and member not in nav_members
+                )
                 has_script = False
                 for element in root.iter():
                     name = local_name(element.tag)
@@ -252,8 +309,12 @@ def inspect_epub(path: Path, errors: list[str], warnings: list[str]) -> dict[str
                             missing_alt += 1
                     elif name == "script":
                         has_script = True
+                    elif name == "body" and counts_as_text:
+                        text_characters += len(re.sub(r"\s+", " ", "".join(element.itertext())).strip())
                 if has_script:
                     scripted_docs += 1
+            if not text_characters:
+                errors.append("no spine content document other than the navigation document contains body text")
             if missing_alt:
                 warnings.append(f"{missing_alt} EPUB img elements have no alt attribute")
             if scripted_docs:
@@ -267,6 +328,7 @@ def inspect_epub(path: Path, errors: list[str], warnings: list[str]) -> dict[str
                     "spine_items": len(spine_ids),
                     "navigation_item_ids": nav_ids,
                     "image_elements": images,
+                    "text_characters": text_characters,
                     "scripted_content_documents": scripted_docs,
                 }
             )
@@ -286,6 +348,8 @@ def inspect_pdf(path: Path, errors: list[str], warnings: list[str]) -> dict[str,
         errors.append("PDF header is missing")
     if b"%%EOF" not in payload[-2048:]:
         errors.append("PDF EOF marker was not found near the end of the file")
+    if b"startxref" not in payload:
+        errors.append("PDF startxref keyword was not found")
     if b"/Encrypt" in payload:
         warnings.append("PDF appears encrypted; verify accessibility, permissions, and intended distribution")
     if b"/StructTreeRoot" not in payload:
@@ -297,9 +361,16 @@ def inspect_pdf(path: Path, errors: list[str], warnings: list[str]) -> dict[str,
     if b"/Metadata" not in payload:
         warnings.append("metadata stream marker was not detected")
     page_count_hint = len(re.findall(rb"/Type\s*/Page\b", payload))
+    object_streams = b"/ObjStm" in payload
+    if page_count_hint == 0:
+        if object_streams:
+            warnings.append("page objects may live in object streams and were not counted")
+        else:
+            errors.append("no page object was found")
     return {
         "pdf_header": payload[:8].decode("latin-1", errors="replace"),
         "page_object_count_hint": page_count_hint,
+        "object_streams": object_streams,
         "tag_structure_marker": b"/StructTreeRoot" in payload,
         "language_marker": b"/Lang" in payload,
         "outline_marker": b"/Outlines" in payload,
@@ -311,6 +382,11 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Structurally inspect a DOCX, EPUB, or PDF.")
     parser.add_argument("file", type=Path)
     parser.add_argument("--format", choices=("docx", "epub", "pdf"))
+    parser.add_argument(
+        "--strict",
+        action="store_true",
+        help="Promote accessibility and navigation warnings to errors (release preflight)",
+    )
     args = parser.parse_args()
 
     errors: list[str] = []
@@ -340,6 +416,8 @@ def main() -> int:
         else:
             errors.append("format is unknown; pass --format docx, epub, or pdf")
 
+    report["strict"] = args.strict
+    report["promoted_warnings"] = apply_strict(errors, warnings) if args.strict else []
     report["status"] = "fail" if errors else "pass"
     print(json.dumps(report, indent=2, sort_keys=True))
     return 1 if errors else 0

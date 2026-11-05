@@ -28,6 +28,7 @@ Use this checklist after format generation. Apply only requirements relevant to 
 
 ## Navigation and accessibility
 
+- `scripts/inspect_deliverable.py --strict` ran on every release file and passed. Strict mode promotes these warnings to errors: DOCX drawings without a title or description and a missing TOC field; EPUB `img` elements without `alt`; a PDF without tag structure, language, outline, or metadata markers. Proofs use the default mode, which still fails a hollow file (no page objects, no body text).
 - TOC, bookmarks, page list, landmarks, internal links, external links, note backlinks, and index links work where applicable.
 - Language, heading hierarchy, reading order, table headers, link purpose, alt text, captions, and long descriptions were reviewed.
 - Required format validators and assistive-technology tests ran; versions and results are retained.

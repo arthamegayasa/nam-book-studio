@@ -52,7 +52,11 @@ def inspect_svg(path: Path) -> dict[str, object]:
     report["sha256"] = hashlib.sha256(raw).hexdigest()
     upper = raw.upper()
     if b"<!DOCTYPE" in upper or b"<!ENTITY" in upper:
+        # Never hand a document with declarations to the parser: the verdict is
+        # already fail, and entity expansion is exactly what this check prevents.
         errors.append("DOCTYPE and ENTITY declarations are not allowed")
+        report["status"] = "fail"
+        return report
 
     try:
         root = ET.fromstring(raw)
