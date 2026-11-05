@@ -1711,9 +1711,11 @@ def validate_state(
             source = artifacts.get(item.get("artifact_id"))
             if source is None:
                 errors.append(f"Artifact {artifact_id} has unknown input {item.get('artifact_id')}")
+            # Blocked artifacts retain prior inputs; freshness and approval gates
+            # still reject them, just as they reject stale artifacts.
             elif source["sha256"] != item.get("sha256") and artifact.get(
                 "status"
-            ) != "stale":
+            ) not in {"stale", "blocked"}:
                 errors.append(
                     f"Artifact {artifact_id} is stale because input {source['artifact_id']} changed"
                 )

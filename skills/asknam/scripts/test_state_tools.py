@@ -13,6 +13,7 @@ from pathlib import Path
 from state_core import (
     PROJECT_SCHEMA_URI,
     StateError,
+    artifact_is_fresh,
     atomic_write_json,
     build_route,
     create_manifest,
@@ -33,7 +34,8 @@ from validate_resources import validate as validate_resources
 
 class StateToolsTests(unittest.TestCase):
     def register_fixture(self, state, state_path, kind, artifact_id, payload,
-                         input_ids=None, chapter_id=None, status="review", raw_text=False):
+                         input_ids=None, chapter_id=None, status="review", raw_text=False,
+                         blockers=None):
         slot = state["artifact_registry"]["slots"][kind]
         path = slot["path"].replace("{artifact_id}", artifact_id).replace(
             "{locale}", state["source_locale"]
@@ -54,6 +56,7 @@ class StateToolsTests(unittest.TestCase):
             relative_path=path, produced_by=slot["produced_by"], status=status,
             locale=state["source_locale"], chapter_id=chapter_id,
             input_ids=input_ids or [], claim_ids=[], source_ids=[],
+            blockers=blockers,
             origin="test-fixture", creator="Test author", license_name="project-owned",
             source_url="", notice_path="",
         )
@@ -712,6 +715,62 @@ class StateToolsTests(unittest.TestCase):
             actionable = format_route_receipt(state["route"]).splitlines()[-1]
             self.assertIn("nam-book-architect", actionable)
             self.assertNotIn("nam-book-voice", actionable)
+
+    def test_upstream_revision_preserves_blocked_downstream_without_unlocking_it(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            state, state_path = self.create(
+                Path(temporary), risk_level="R3", medical_enabled=True,
+                jurisdiction="Test jurisdiction", evidence_cutoff=date.today().isoformat(),
+                revalidate_before_export=date.today().isoformat(),
+            )
+            self.approve_brief(state)
+            transition_node(state, "nam-book-research", "running")
+            self.register_fixture(state, state_path, "research_brief", "research-brief", {"version": 1})
+            self.register_fixture(state, state_path, "evidence_ledger", "evidence-ledger", {"version": 1})
+            transition_node(state, "nam-book-research", "complete")
+            transition_node(state, "nam-book-architect", "running")
+            architecture = self.register_fixture(
+                state, state_path, "book_architecture", "book-architecture", {"version": 1},
+                input_ids=["research-brief", "evidence-ledger"], status="blocked",
+                blockers=["missing-source:mechanism"],
+            )
+            original_architecture = copy.deepcopy(architecture)
+
+            mark_artifact_stale(state, "research-brief", "Additional evidence inspected")
+            mark_artifact_stale(state, "evidence-ledger", "Additional evidence inspected")
+            transition_node(state, "nam-book-research", "running")
+            updated_brief = self.register_fixture(
+                state, state_path, "research_brief", "research-brief", {"version": 2},
+            )
+            errors, _ = validate_state(state, state_path)
+            self.assertEqual(errors, [])
+            self.register_fixture(state, state_path, "evidence_ledger", "evidence-ledger", {"version": 2})
+            transition_node(state, "nam-book-research", "complete")
+
+            artifacts = {item["artifact_id"]: item for item in state["artifact_registry"]["entries"]}
+            architecture = artifacts["book-architecture"]
+            self.assertEqual(architecture, original_architecture)
+            self.assertNotEqual(architecture["inputs"][0]["sha256"], updated_brief["sha256"])
+            self.assertFalse(artifact_is_fresh(architecture, artifacts))
+            errors, _ = validate_state(state, state_path)
+            self.assertEqual(errors, [])
+            with self.assertRaisesRegex(StateError, "stale or blocked"):
+                decide_approval(
+                    state, approval_id="architecture", decision="approved",
+                    decided_by="Reviewer", basis_ids=["book-architecture"], note="Attempt blocked basis",
+                )
+            with self.assertRaisesRegex(StateError, "lacks registered outputs"):
+                transition_node(state, "nam-book-architect", "complete")
+            with self.assertRaisesRegex(StateError, "blocked by"):
+                transition_node(state, "nam-book-voice", "running")
+
+            # Retained fingerprints are permitted only while the artifact is unusable.
+            incorrectly_unblocked = copy.deepcopy(state)
+            candidate = next(item for item in incorrectly_unblocked["artifact_registry"]["entries"]
+                             if item["artifact_id"] == "book-architecture")
+            candidate.update(status="review", blockers=[])
+            errors, _ = validate_state(incorrectly_unblocked, state_path)
+            self.assertTrue(any("stale because input research-brief changed" in error for error in errors))
 
     def test_registry_preserves_ids_blockers_provenance_and_revision_bytes(self):
         with tempfile.TemporaryDirectory() as temporary:
