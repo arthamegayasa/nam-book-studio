@@ -30,6 +30,13 @@ State the difficulty and expected reader action. “Break up the page” is not 
 
 A hybrid asset keeps its exact diagram layer editable and its illustration layer replaceable. Record both component artifact IDs and their composition method. Hand-drawn tokens govern appearance, not factual precision or format: they do not justify baking exact labels into a generated bitmap. In mascot-free mode, plan scenes or relationships without a recurring guide.
 
+## Structure and placement
+
+The architecture's `planned_visuals` already name each visual's `kind`, `structure`, and `placement` (see the architecture contract). The brief carries them forward unchanged unless it reports a change:
+
+- `structure` is the reading rule: `process`, `hierarchy`, `comparison`, `timeline`, `cycle`, `spatial`, `mechanism`, `decision-path`, or `scene`. Diagrams and hybrids always have one; a table is normally a `comparison`, and a data graphic takes the structure of the relationship it shows. `mechanism` covers pathophysiology and pathogenesis, `decision-path` covers algorithms, `spatial` covers anatomy. Changing a structure is a content decision: record the rationale and report it to the architecture stage.
+- `placement` is the page hint: `inline`, `side-column`, `band`, `full-page`, `opener`, or `spread`, the same tokens callouts and the design spec use. Absent means the design spec's `figures.default_placement`. The brief may refine the architecture's hint (a `full-page` mechanism that needs a `spread`), and publish may override it by page geometry; both record the original and the applied value. Reflowable formats degrade placement as the design spec's `degradation` says.
+
 ## Figure inventory fields
 
 Each retained entry should include:
@@ -38,7 +45,7 @@ Each retained entry should include:
 - approved setup and bible artifact IDs/revisions/hashes, plus the relevant visual-token references;
 - linked `objective_ids`, `claim_ids`, and `source_ids`;
 - diagnosed reader difficulty, `learning_job`, and expected reader action;
-- chosen kind, routing rationale, and rejected alternatives;
+- chosen `kind`, `structure`, and `placement` (the architecture's values plus any recorded refinement), routing rationale, and rejected alternatives;
 - factual payload and an explicit list of details that must not be inferred;
 - caption purpose, short alt-text intent, and long-description need;
 - labels, units, reading order, and localization strategy;

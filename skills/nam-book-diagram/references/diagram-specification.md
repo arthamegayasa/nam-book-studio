@@ -7,7 +7,7 @@ Write and approve this specification before drawing. It is the source of truth f
 - `figure_id`, revision, locale, chapter and insertion block;
 - linked objective, claim, source, and evidence IDs;
 - diagnosed reader difficulty and one `learning_job`;
-- diagram structure and why it is preferable to prose, a table, or an illustration;
+- the planned visual's `structure` and `placement`, and why the structure is preferable to prose, a table, or an illustration;
 - expected reader path and the conclusion the figure may support;
 - details that must remain absent because they are unknown or out of scope.
 
@@ -27,14 +27,16 @@ For values, record the number, unit, range or uncertainty, population, date, jur
 
 ## Structure selection
 
-- **Process:** ordered transformation with a defined start and outcome.
-- **Hierarchy:** containment or level relationships; avoid implying time.
-- **Comparison:** parallel structures sharing the same criteria.
-- **Timeline:** dated or ordered events on one scale.
-- **Cycle:** a genuinely repeating process with no misleading terminal arrow.
-- **Spatial map:** position or anatomy where orientation is meaningful.
-- **Mechanism:** supported interactions with distinct causal and noncausal relations.
-- **Decision path:** explicit conditions, branches, outcomes, and exit states.
+- **Process** (`process`): ordered transformation with a defined start and outcome.
+- **Hierarchy** (`hierarchy`): containment or level relationships; avoid implying time.
+- **Comparison** (`comparison`): parallel structures sharing the same criteria.
+- **Timeline** (`timeline`): dated or ordered events on one scale.
+- **Cycle** (`cycle`): a genuinely repeating process with no misleading terminal arrow.
+- **Spatial map** (`spatial`): position or anatomy where orientation is meaningful.
+- **Mechanism** (`mechanism`): supported interactions with distinct causal and noncausal relations; pathophysiology and pathogenesis diagrams belong here.
+- **Decision path** (`decision-path`): explicit conditions, branches, outcomes, and exit states; algorithms and clinical pathways belong here.
+
+The token in parentheses is the `structure` value of the planned visual in the architecture and the visual brief. The architecture also allows `scene` for expressive illustrations; it is never a diagram structure.
 
 Use one dominant structure. When the content needs two independent reading rules, split it into coordinated figures.
 

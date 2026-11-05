@@ -27,6 +27,16 @@ Take the contour, shape language, restrained texture, and palette from the appro
 
 Preserve live typeset labels and stable element IDs. The hand-drawn look does not require rasterizing the master or asking an image model to draw exact text. If a mascot is requested, use the selected project's approved identity rather than importing Nam by default.
 
+## Tokens
+
+Write the project's tokens into the master instead of hand-editing colors:
+
+```text
+python scripts/apply_tokens.py --svg <master.svg> --design-spec <design-spec.json> --setup <illustration-setup.json> --out <master.svg>
+```
+
+The label font family and weight come from the design spec's `typography.labels`; the `paper`, `ink`, `muted`, `accent`, and `tint` roles come from its `color`; the setup's `visual_tokens.palette` overrides roles by name (`ink`, `paper`, `accent`, `muted`, `neutral`, `process`, `outcome`) or, for bare hex values, in that order. The helper rewrites only the role selectors (`.canvas`, `.node`, `.input`, `.process`, `.outcome`, `.edge`, `.arrowhead`, `.label`) of the first `<style>` block and prints the resolved roles; geometry, IDs, and text stay untouched, and the result still needs the render and grayscale checks below.
+
 ## Text
 
 Typeset exact labels in `<text>` elements. Use system-safe or explicitly licensed fonts and record the fallback stack. Preserve live text in the master even if a derivative converts glyphs to outlines.

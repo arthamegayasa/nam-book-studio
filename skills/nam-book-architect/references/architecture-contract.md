@@ -22,12 +22,34 @@ Each chapter records:
 - word target and profile-specific chapter pattern
 - objectives with coverage sufficient to test the reader promise
 - planned claims, risk, and required evidence IDs
-- planned visuals with kind and learning job
+- planned visuals with `kind`, `learning_job`, `structure` for diagrams and
+  hybrids, and an optional `placement` hint
 - planned assessments mapped to objective IDs
 
 The chapter graph must be acyclic. Every dependency must appear earlier in a
 valid topological order, though the stored chapter list may be regrouped for
 parts after validation.
+
+## Planned visuals
+
+Each `planned_visuals` entry carries the shared visual vocabulary so the visual
+brief, the diagram skill, and publish inherit one plan instead of rediscovering
+it:
+
+- `kind`: `illustration`, `diagram`, `table`, `data-graphic`, `photograph`,
+  `hybrid`, or `other`, matching the visual brief's routing table.
+- `structure`: the reading rule of the visual: `process`, `hierarchy`,
+  `comparison`, `timeline`, `cycle`, `spatial`, `mechanism`, `decision-path`,
+  or `scene`. Required for `diagram` and `hybrid`; optional for other kinds.
+  `mechanism` covers pathophysiology and pathogenesis, `decision-path` covers
+  algorithms and clinical pathways, `spatial` covers anatomy and maps, and
+  `scene` marks an expressive illustration with no exact geometry.
+- `placement`: where the visual's body sits on a fixed page: `inline`,
+  `side-column`, `band`, `full-page`, `opener`, or `spread`, the same tokens
+  callouts and the design spec use. Absent means the design spec's
+  `figures.default_placement`. It is a planning hint: the visual brief may
+  refine it and publish may override it by page geometry, and both report the
+  change rather than silently moving the figure.
 
 ## Evidence readiness
 
