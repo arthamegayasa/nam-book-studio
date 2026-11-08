@@ -118,7 +118,8 @@ run `nam-book-publish-release`. Never treat proof generation as release.
 Treat a changed input hash as an invalidation, not a cosmetic edit. Register a
 new revision or mark the artifact stale, expire approvals whose basis changed,
 replan, and rerun every invalidated descendant. Changes to `R2`/`R3` claims in
-editing or localization reopen research and validation.
+editing or localization reopen research and validation; signal them with
+`mark-stale --high-risk-change`, because a new revision alone does not.
 
 Never infer that a skill is absent merely because an explicit-only skill is not
 visible to the model. The catalog records the bundle; a failed explicit call is
