@@ -895,12 +895,12 @@ def mark_artifact_stale(
                 affected_artifacts.add(candidate["artifact_id"])
                 invalidated.add(candidate_producer)
         changed = before != (invalidated, affected_artifacts)
-    if high_risk_change or (
-        state["risk_level"] in {"R2", "R3"}
-        and artifacts[artifact_id]["produced_by"]
-        in {"nam-book-edit", "nam-book-localize"}
-    ):
+    # Research and validation reopen only on an explicit high-risk change; the invalidation
+    # then spreads to their descendants so no complete node sits behind a stale dependency.
+    if high_risk_change:
         invalidated.update({"nam-book-research", "nam-book-validate"})
+        for node_id in list(invalidated):
+            invalidated.update(_descendants(node_id, combined))
     invalidated &= {item["id"] for item in nodes}
 
     for affected_id in affected_artifacts:
@@ -1158,10 +1158,9 @@ def register_artifact(
                 state,
                 artifact_id,
                 "A new artifact revision replaced the registered bytes",
-                high_risk_change=(
-                    state["risk_level"] in {"R2", "R3"}
-                    and produced_by in {"nam-book-edit", "nam-book-localize"}
-                ),
+                # New bytes alone are not evidence of a claim change; editors signal one
+                # explicitly with mark-stale --high-risk-change.
+                high_risk_change=False,
             )
             producer["status"] = "running"
             producer["blockers"] = []

@@ -185,8 +185,10 @@ python skills/asknam/scripts/update_state.py --state .nam-book/project.json mark
   --artifact edited-id --reason "High-risk claim changed" --high-risk-change
 ```
 
-Staleness propagates through the route, expires hash-based approvals, and reopens
-research and validation for high-risk editorial or localization changes. After
+Staleness propagates through the route and expires hash-based approvals. Only
+`--high-risk-change` reopens research and validation, together with their
+descendants; registering a new revision of an edited or localized artifact does
+not. After
 producing and registering the replacement, replan rather than manually clearing
 downstream blockers.
 

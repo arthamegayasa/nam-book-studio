@@ -1151,6 +1151,44 @@ class StateToolsTests(unittest.TestCase):
                         basis_ids=["edited-id"], note="Source edition locked")
         transition_node(state, "nam-book-localize", "running")
 
+    def create_r2_text_only(self, project_dir: Path):
+        cutoff = date.today()
+        return self.create(
+            project_dir, risk_level="R2", medical_enabled=True, jurisdiction="Indonesia",
+            evidence_cutoff=cutoff.isoformat(),
+            revalidate_before_export=(cutoff + timedelta(days=30)).isoformat(),
+            target_locales=["en-US"], assessments="no", illustrations="no", diagrams="no",
+        )
+
+    def test_r2_localize_revision_keeps_research_complete_and_state_valid(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            state, state_path = self.create_r2_text_only(Path(temporary))
+            self.advance_text_pipeline_to_localize(state, state_path, callout_ids=[])
+            for payload in ("# Localized", "# Localized v2"):
+                # The second registration is a routine revision with no claim change signalled.
+                self.register_fixture(state, state_path, "localized_manuscript", "localized-en",
+                                      payload, raw_text=True, locale="en-US",
+                                      input_ids=["edited-id"])
+            errors, _ = validate_state(state, state_path)
+            self.assertEqual(errors, [])
+            nodes = {item["id"]: item for item in state["route"]["nodes"]}
+            self.assertEqual(nodes["nam-book-research"]["status"], "complete")
+            self.assertEqual(nodes["nam-book-localize"]["status"], "running")
+
+    def test_explicit_high_risk_change_reopens_research_and_its_descendants(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            state, state_path = self.create_r2_text_only(Path(temporary))
+            self.advance_text_pipeline_to_localize(state, state_path, callout_ids=[])
+            invalidated = mark_artifact_stale(state, "edited-id", "Claim changed",
+                                              high_risk_change=True)
+            nodes = {item["id"]: item for item in state["route"]["nodes"]}
+            for node_id in ("nam-book-research", "nam-book-validate", "nam-book-architect",
+                            "nam-book-write", "nam-book-teach", "nam-book-edit"):
+                self.assertIn(node_id, invalidated)
+                self.assertEqual(nodes[node_id]["status"], "stale", node_id)
+            errors, _ = validate_state(state, state_path)
+            self.assertEqual(errors, [])
+
     def test_registry_records_callout_ids_in_entry_history_and_cli(self):
         with tempfile.TemporaryDirectory() as temporary:
             state, state_path = self.create(Path(temporary))
